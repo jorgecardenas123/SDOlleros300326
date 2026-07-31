@@ -1,0 +1,2185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Gestión de Transformadores - CELEPSA</title>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Estilos propios -->
+    <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: #f0f4f8; color: #1a202c; }
+
+/* ===== HEADER ===== */
+.header {
+    background: linear-gradient(135deg, #081e42 0%, #0f3575 50%, #1a5196 100%) !important;
+    padding: 12px 28px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 20px !important;
+    justify-content: space-between !important;
+}
+.header-logo-area { flex: 0 0 auto; }
+.celepsa-logo { height: 56px; width: auto; }
+.header-title-area { flex: 1; text-align: center; }
+.header-title-area h1 { font-size: 20px !important; font-weight: 700 !important; display:flex; align-items:center; gap:10px; justify-content:center; }
+.header-right-area { flex: 0 0 auto; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+.header .subtitle { font-size: 13px; font-weight: 400; opacity: 0.8; }
+.header .badge { background: rgba(255,255,255,0.15); padding: 6px 16px; border-radius: 20px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.header .badge i { color: #34d399; }
+
+/* ===== NAVEGACIÓN ===== */
+.nav-tabs {
+    background: white;
+    padding: 0 24px;
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid #e2e8f0;
+    position: sticky;
+    top: 70px;
+    z-index: 99;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    flex-wrap: wrap;
+}
+.nav-tab {
+    padding: 14px 22px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.nav-tab:hover { color: #1a4a8a; background: #f8fafc; }
+.nav-tab.active { color: #1a4a8a; border-bottom-color: #1a4a8a; background: #f0f7ff; }
+.nav-tab .tab-badge { background: #e2e8f0; color: #475569; border-radius: 12px; padding: 0 10px; font-size: 11px; line-height: 20px; }
+.nav-tab.active .tab-badge { background: #1a4a8a; color: white; }
+
+/* ===== CONTENEDOR ===== */
+.tab-content { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
+.tab-pane { display: none; animation: fadeIn 0.4s ease; }
+.tab-pane.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== TARJETAS ===== */
+.card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    padding: 24px;
+    margin-bottom: 20px;
+    border: 1px solid #eef2f6;
+    transition: box-shadow 0.3s;
+}
+.card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+.card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0b2b5c;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.card-title i { color: #1a4a8a; }
+.card-subtitle { font-size: 13px; color: #64748b; font-weight: 400; margin-left: 8px; }
+
+/* ===== GRIDS ===== */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.grid-transformers { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.chart-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.chart-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.table-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+@media (max-width: 1024px) {
+    .grid-2, .grid-3, .grid-4, .grid-transformers, .chart-grid-2, .table-grid-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+@media (max-width: 640px) {
+    .grid-2, .grid-3, .grid-4, .grid-transformers, .chart-grid-2, .table-grid-2 {
+        grid-template-columns: 1fr;
+    }
+    .nav-tabs { padding: 0 12px; }
+    .nav-tab { padding: 10px 14px; font-size: 12px; }
+    .tab-content { padding: 16px; }
+    .header { flex-wrap: wrap; }
+    .celepsa-logo { height: 38px; }
+    .header-title-area h1 { font-size: 14px !important; }
+}
+
+/* ===== INDICADORES ===== */
+.stat-card {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 16px 20px;
+    border-left: 4px solid #1a4a8a;
+}
+.stat-card .label { font-size: 12px; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-card .value { font-size: 22px; font-weight: 700; color: #0b2b5c; margin-top: 4px; }
+.stat-card .unit { font-size: 14px; font-weight: 400; color: #64748b; }
+.stat-card.green { border-left-color: #34d399; }
+.stat-card.orange { border-left-color: #f59e0b; }
+.stat-card.red { border-left-color: #ef4444; }
+.stat-card.purple { border-left-color: #8b5cf6; }
+.stat-card.blue { border-left-color: #3b82f6; }
+.stat-card.t1 { border-left-color: #2E86C1; }
+.stat-card.t2 { border-left-color: #E67E22; }
+
+/* ===== TABLAS ===== */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+table th { background: #f1f5f9; color: #1e293b; font-weight: 600; padding: 10px 14px; text-align: left; border-bottom: 2px solid #e2e8f0; }
+table td { padding: 10px 14px; border-bottom: 1px solid #eef2f6; color: #334155; }
+table tr:hover td { background: #f8fafc; }
+table .status-good { color: #34d399; font-weight: 600; }
+table .status-warning { color: #f59e0b; font-weight: 600; }
+table .status-danger { color: #ef4444; font-weight: 600; }
+
+/* ===== GRÁFICOS ===== */
+.chart-container { position: relative; height: 250px; width: 100%; }
+.chart-container-sm { height: 200px; }
+
+/* ===== BADGES ===== */
+.badge-status {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.badge-status.excellent { background: #d1fae5; color: #065f46; }
+.badge-status.good { background: #dbeafe; color: #1e40af; }
+.badge-status.warning { background: #fef3c7; color: #92400e; }
+.badge-status.critical { background: #fecaca; color: #991b1b; }
+.badge-status.t1 { background: #dbeafe; color: #1e40af; }
+.badge-status.t2 { background: #fef3c7; color: #92400e; }
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+.progress-bar .fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+.progress-bar .fill.green { background: #34d399; }
+.progress-bar .fill.orange { background: #f59e0b; }
+.progress-bar .fill.red { background: #ef4444; }
+.progress-bar .fill.blue { background: #3b82f6; }
+.progress-bar .fill.t1 { background: #2E86C1; }
+.progress-bar .fill.t2 { background: #E67E22; }
+
+/* ===== SELECTOR Y FILTROS ===== */
+.cta-hint { text-align: center; padding: 10px 0 18px; color: #475569; font-size: 14px; }
+.cta-hint i { color: #1a4a8a; margin-right: 8px; }
+
+.clickable-card { cursor: pointer; transition: all 0.25s; }
+.clickable-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.14); }
+.clickable-card.t1:hover, .clickable-card.t1.selected-card { border: 2px solid #2E86C1; background: #eaf4fc; }
+.clickable-card.t2:hover, .clickable-card.t2.selected-card { border: 2px solid #E67E22; background: #fef5ec; }
+
+.click-hint-btn { margin-left: auto; color: white; padding: 4px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+.click-hint-btn.t1-btn { background: #2E86C1; }
+.click-hint-btn.t2-btn { background: #E67E22; }
+
+.filter-banner {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    font-size: 13px;
+    font-weight: 600;
+}
+.filter-banner.t1 { background: #dbeafe; color: #1e3a5f; border-left: 5px solid #2E86C1; }
+.filter-banner.t2 { background: #fef3c7; color: #7c3a00; border-left: 5px solid #E67E22; }
+.back-btn { margin-left: auto; background: white; border: 1.5px solid currentColor; padding: 4px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; font-family: 'Inter', sans-serif; color: inherit; }
+.back-btn:hover { opacity: 0.75; }
+
+.no-sel-notice { text-align: center; padding: 60px 20px; color: #64748b; }
+.no-sel-notice i { font-size: 52px; color: #cbd5e1; margin-bottom: 16px; display: block; }
+.no-sel-notice h3 { font-size: 18px; margin-bottom: 8px; color: #475569; }
+.no-sel-notice p { font-size: 14px; }
+
+/* ===== TRANSFORMER SECTIONS ===== */
+.transformer-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e2e8f0;
+}
+.transformer-header .badge-t1 { background: #2E86C1; color: white; padding: 2px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.transformer-header .badge-t2 { background: #E67E22; color: white; padding: 2px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+
+.transformer-section { background: #f8fafc; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; }
+.transformer-section.t1 { border-left: 4px solid #2E86C1; }
+.transformer-section.t2 { border-left: 4px solid #E67E22; }
+
+/* ===== IEEE NOTES ===== */
+.ieee-note { font-size: 12px; color: #475569; background: #f1f5f9; padding: 8px 14px; border-radius: 8px; border-left: 4px solid #1a4a8a; margin-top: 8px; }
+.ieee-note i { color: #1a4a8a; margin-right: 6px; }
+
+.chart-limit-label { font-size: 11px; font-weight: 500; padding: 2px 10px; border-radius: 4px; display: inline-block; margin-top: 4px; }
+.chart-limit-label.warning { background: #fef3c7; color: #92400e; }
+.chart-limit-label.danger { background: #fecaca; color: #991b1b; }
+.chart-limit-label.success { background: #d1fae5; color: #065f46; }
+.chart-limit-label.info { background: #dbeafe; color: #1e40af; }
+
+/* ===== FOOTER ===== */
+.footer { text-align: center; padding: 20px; color: #94a3b8; font-size: 13px; border-top: 1px solid #e2e8f0; margin-top: 20px; }
+
+/* ===== RESPONSIVE ===== */
+.flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.gap-2 { gap: 8px; }
+.mt-2 { margin-top: 12px; }
+.mb-2 { margin-bottom: 12px; }
+.text-center { text-align: center; }
+.text-muted { color: #64748b; font-size: 13px; }
+html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+    <div class="header-logo-area">
+        <svg class="celepsa-logo" viewBox="0 0 310 72" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="36" cy="36" r="32" fill="none" stroke="white" stroke-width="9"/>
+            <circle cx="36" cy="36" r="17" fill="none" stroke="white" stroke-width="7"/>
+            <circle cx="36" cy="36" r="5" fill="white"/>
+            <path d="M62,36 Q75,14 89,36" fill="none" stroke="white" stroke-width="9" stroke-linecap="round"/>
+            <circle cx="102" cy="36" r="32" fill="none" stroke="white" stroke-width="9"/>
+            <circle cx="102" cy="36" r="17" fill="none" stroke="white" stroke-width="7"/>
+            <circle cx="102" cy="36" r="5" fill="white"/>
+            <text x="148" y="50" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="38" fill="white" letter-spacing="-0.5">celepsa</text>
+        </svg>
+    </div>
+    <div class="header-title-area">
+        <h1><i class="fas fa-bolt" style="color:#00d4ff;"></i> Gestión de Transformadores</h1>
+        <div class="subtitle">Central Hidroeléctrica El Platanal · Unidad de Gestión de Activos</div>
+    </div>
+    <div class="header-right-area">
+        <div class="badge">
+            <i class="fas fa-circle" style="color:#34d399;"></i>
+            <span>Sistema en línea · <strong>Actualizado:</strong> 26/06/2026</span>
+        </div>
+        <div id="selectedTransformerBadge" style="display:none; margin-top:6px; background:rgba(255,212,0,0.15); border:1px solid rgba(255,212,0,0.5); padding:5px 14px; border-radius:20px; font-size:12px; font-weight:700; text-align:center; color:#ffd400;"></div>
+    </div>
+</header>
+
+<!-- ===== NAVEGACIÓN ===== -->
+<nav class="nav-tabs" id="navTabs">
+    <button class="nav-tab active" data-tab="tab1"><i class="fas fa-info-circle"></i> Datos Generales <span class="tab-badge">2</span></button>
+    <button class="nav-tab detail-tab" data-tab="tab2" style="display:none;"><i class="fas fa-bolt"></i> Pruebas Eléctricas <span class="tab-badge">8</span></button>
+    <button class="nav-tab detail-tab" data-tab="tab3" style="display:none;"><i class="fas fa-flask"></i> Análisis de Aceite <span class="tab-badge">8</span></button>
+    <button class="nav-tab detail-tab" data-tab="tab4" style="display:none;"><i class="fas fa-chart-pie"></i> DGA / Gases <span class="tab-badge">8</span></button>
+    <button class="nav-tab detail-tab" data-tab="tab5" style="display:none;"><i class="fas fa-chart-line"></i> Vida Remanente <span class="tab-badge">DNV</span></button>
+</nav>
+
+<!-- ===== CONTENIDO ===== -->
+<div class="tab-content">
+
+    <!-- ===== TAB 1: DATOS GENERALES ===== -->
+    <div class="tab-pane active" id="tab1">
+        <div class="cta-hint"><i class="fas fa-hand-pointer"></i> Haz clic en un transformador para ver su análisis detallado</div>
+        <div class="grid-transformers">
+            <!-- T1 -->
+            <div class="transformer-section t1 clickable-card" id="tab1-t1-card" onclick="selectTransformer(1)">
+                <div class="transformer-header">
+                    <i class="fas fa-circle" style="color:#2E86C1; font-size:14px;"></i>
+                    <strong>Transformador 1</strong>
+                    <span class="badge-t1">SN 8128922</span>
+                    <span class="text-muted" style="font-size:12px;">Siemens TWUM 8054 · 120 MVA</span>
+                    <span class="click-hint-btn t1-btn"><i class="fas fa-mouse-pointer"></i> Ver Análisis</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px;">
+                    <div><span class="text-muted">Fabricante</span><br><strong>Siemens (TUSA Brasil)</strong></div>
+                    <div><span class="text-muted">Modelo</span><br><strong>TWUM 8054</strong></div>
+                    <div><span class="text-muted">Año de fabricación</span><br><strong>2008</strong></div>
+                    <div><span class="text-muted">Puesta en servicio</span><br><strong>31/03/2010</strong></div>
+                    <div><span class="text-muted">Potencia nominal</span><br><strong>120 MVA</strong></div>
+                    <div><span class="text-muted">Relación de tensión</span><br><strong>13.8 / 220 kV</strong></div>
+                    <div><span class="text-muted">Grupo vectorial</span><br><strong>YNd1</strong></div>
+                    <div><span class="text-muted">Impedancia de cortocircuito</span><br><strong>12.54%</strong></div>
+                    <div><span class="text-muted">Corriente AT</span><br><strong>314.9 A</strong></div>
+                    <div><span class="text-muted">Corriente BT</span><br><strong>5.02 kA</strong></div>
+                    <div><span class="text-muted">Peso total</span><br><strong>95,000 kg</strong></div>
+                    <div><span class="text-muted">Capacidad de aceite</span><br><strong>26,200 L</strong></div>
+                </div>
+                <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px;">
+                    <span class="badge-status excellent">✅ Operativo</span>
+                    <span class="badge-status t1">12 años en servicio</span>
+                    <span class="badge-status excellent">DP: ~1,081</span>
+                </div>
+            </div>
+            <!-- T2 -->
+            <div class="transformer-section t2 clickable-card" id="tab1-t2-card" onclick="selectTransformer(2)">
+                <div class="transformer-header">
+                    <i class="fas fa-circle" style="color:#E67E22; font-size:14px;"></i>
+                    <strong>Transformador 2</strong>
+                    <span class="badge-t2">SN 8128923</span>
+                    <span class="text-muted" style="font-size:12px;">Siemens TWUM 8054 · 120 MVA</span>
+                    <span class="click-hint-btn t2-btn"><i class="fas fa-mouse-pointer"></i> Ver Análisis</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px;">
+                    <div><span class="text-muted">Fabricante</span><br><strong>Siemens (TUSA Brasil)</strong></div>
+                    <div><span class="text-muted">Modelo</span><br><strong>TWUM 8054</strong></div>
+                    <div><span class="text-muted">Año de fabricación</span><br><strong>2008</strong></div>
+                    <div><span class="text-muted">Puesta en servicio</span><br><strong>31/03/2010</strong></div>
+                    <div><span class="text-muted">Potencia nominal</span><br><strong>120 MVA</strong></div>
+                    <div><span class="text-muted">Relación de tensión</span><br><strong>13.8 / 220 kV</strong></div>
+                    <div><span class="text-muted">Grupo vectorial</span><br><strong>YNd1</strong></div>
+                    <div><span class="text-muted">Impedancia de cortocircuito</span><br><strong>12.54%</strong></div>
+                    <div><span class="text-muted">Corriente AT</span><br><strong>314.9 A</strong></div>
+                    <div><span class="text-muted">Corriente BT</span><br><strong>5.02 kA</strong></div>
+                    <div><span class="text-muted">Peso total</span><br><strong>95,000 kg</strong></div>
+                    <div><span class="text-muted">Capacidad de aceite</span><br><strong>26,200 L</strong></div>
+                </div>
+                <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px;">
+                    <span class="badge-status excellent">✅ Operativo</span>
+                    <span class="badge-status t2">12 años en servicio</span>
+                    <span class="badge-status excellent">DP: ~1,100</span>
+                </div>
+            </div>
+        </div>
+        <!-- Características Técnicas Compartidas -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-cog"></i> Características Técnicas Adicionales <span class="card-subtitle">Sistema de enfriamiento ODWF</span></div>
+            <div class="grid-4">
+                <div><span class="text-muted">Tipo de enfriamiento</span><br><strong>ODWF</strong></div>
+                <div><span class="text-muted">Enfriadores</span><br><strong>2 x 240 kW</strong></div>
+                <div><span class="text-muted">Caudal de agua nominal</span><br><strong>23 m³/h</strong></div>
+                <div><span class="text-muted">Caudal de aceite nominal</span><br><strong>95 m³/h</strong></div>
+                <div><span class="text-muted">Temp. máx. agua entrada</span><br><strong>28°C</strong></div>
+                <div><span class="text-muted">Temp. máx. aceite topo</span><br><strong>65°C</strong></div>
+                <div><span class="text-muted">Temp. máx. punto caliente</span><br><strong>80°C</strong></div>
+                <div><span class="text-muted">Cambiador de tomas</span><br><strong>5 posiciones (±5%)</strong></div>
+            </div>
+        </div>
+    </div>
+
+    
+    
+    <!-- ===== TAB 2: PRUEBAS ELÉCTRICAS ===== -->
+    <div class="tab-pane" id="tab2">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-chart-bar"></i> Histórico de Pruebas Eléctricas
+            <span class="card-subtitle">TTR · RA · FP · Capacitancia · Excitación · TC Bushings · SFRA</span></div>
+            <div class="ieee-note"><i class="fas fa-book"></i>
+            <strong>Referencias normativas:</strong> IEEE C57.152-2013 · IEEE C57.12.90 · IEEE C57.149-2012 (SFRA).
+            Zonas: 🟢 Excelente · 🟡 Alerta · 🔴 Crítico.</div>
+        </div>
+        <div class="filter-banner t1" id="fb_tab2_t1" style="display:none;"><i class="fas fa-filter"></i> Mostrando: <strong>Transformador 1 — SN 8128922</strong><button class="back-btn" onclick="clearSelection()">↩ Cambiar</button></div><div class="filter-banner t2" id="fb_tab2_t2" style="display:none;"><i class="fas fa-filter"></i> Mostrando: <strong>Transformador 2 — SN 8128923</strong><button class="back-btn" onclick="clearSelection()">↩ Cambiar</button></div><div class="no-sel-notice" id="nosel_tab2"><i class="fas fa-hand-pointer"></i><h3>Selecciona un Transformador</h3><p>Ve a <strong>Datos Generales</strong> y haz clic en Transformador 1 o Transformador 2</p></div>
+        <div class="transformer-section t1 transformer-data-t1" id="sec_t1_tab2" style="margin-bottom:24px; display:none;"><div class="transformer-header"><i class="fas fa-circle" style="color:#2E86C1; font-size:14px;"></i><strong>Transformador 1</strong><span class="badge-t1">SN 8128922</span></div><div class="chart-grid-2"><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Relación de Transformación — Error TTR (%) <span class="chart-limit-label success" style="margin-left:auto;">✅ Normal</span></div><div class="chart-container" style="height:220px;"><canvas id="chartTTR_T1"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEEE C57.12.90: Límite ±0.5%. 🟢 Excelente ≤0.5% · 🟡 Alerta ≤1.0% · 🔴 Crítico >1.0%</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Resistencia de Aislamiento (GΩ) <span class="chart-limit-label success" style="margin-left:auto;">✅ Excelente</span></div><div class="chart-container" style="height:220px;"><canvas id="chartRA_T1"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEEE C57.152: 🟢 Excelente >1 GΩ · 🟡 Alerta 0.1–1 GΩ · 🔴 Crítico <0.1 GΩ</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Factor de Potencia CLH/CL (%) <span class="chart-limit-label success" style="margin-left:auto;">✅ Normal</span></div><div class="chart-container" style="height:220px;"><canvas id="chartFP_T1"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEEE C57.152: 🟢 ≤0.5% · 🟡 ≤1.0% · 🔴 >1.0%</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Capacitancia CLH/CL (pF) <span class="chart-limit-label success" style="margin-left:auto;">✅ Estable</span></div><div class="chart-container" style="height:220px;"><canvas id="chartCap_T1"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEEE C57.12.90: Variación ≤±5% respecto a fabricación</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Corriente de Excitación — Fases U/V/W (mA) </div><div class="chart-container" style="height:220px;"><canvas id="chartExcit_T1"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> Comparación histórica por campaña de mantenimiento</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Error TTR TC's — Bushings (%) </div><div class="chart-container" style="height:220px;"><canvas id="chartTC_T1"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEEE C57.152 / IEC 60044: Fases R/S/T y Neutro</div></div><div class="card" style="grid-column:span 2;"><div class="card-title" style="font-size:14px;"><i class="fas fa-wave-square"></i> SFRA — Análisis de Respuesta en Frecuencia <span class="chart-limit-label success" style="margin-left:auto;">✅ Comparación: Ref. 2023 vs 2025</span></div><div class="chart-container" style="height:260px;"><canvas id="chartSFRA_T1"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-book"></i> <strong>IEEE C57.149-2012:</strong> Comparación entre curva de referencia (Año 0 – 2023) y última medición disponible (2025). Desviación &lt;±1 dB indica condición mecánica normal del devanado. SFRA evalúa integridad mecánica: desplazamientos axiales/radiales, deformación de devanados.</div></div></div></div>
+        <div class="transformer-section t2 transformer-data-t2" id="sec_t2_tab2" style="margin-bottom:24px; display:none;"><div class="transformer-header"><i class="fas fa-circle" style="color:#E67E22; font-size:14px;"></i><strong>Transformador 2</strong><span class="badge-t2">SN 8128923</span></div><div class="chart-grid-2"><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Relación de Transformación — Error TTR (%) <span class="chart-limit-label success" style="margin-left:auto;">✅ Normal</span></div><div class="chart-container" style="height:220px;"><canvas id="chartTTR_T2"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEEE C57.12.90: Límite ±0.5%.</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Resistencia de Aislamiento (GΩ) <span class="chart-limit-label success" style="margin-left:auto;">✅ Excelente</span></div><div class="chart-container" style="height:220px;"><canvas id="chartRA_T2"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEEE C57.152: 🟢 >1 GΩ · 🟡 0.1–1 GΩ · 🔴 <0.1 GΩ</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Factor de Potencia CLH/CL (%) <span class="chart-limit-label success" style="margin-left:auto;">✅ Normal</span></div><div class="chart-container" style="height:220px;"><canvas id="chartFP_T2"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEEE C57.152: 🟢 ≤0.5% · 🟡 ≤1.0% · 🔴 >1.0%</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Capacitancia CLH/CL (pF) <span class="chart-limit-label success" style="margin-left:auto;">✅ Estable</span></div><div class="chart-container" style="height:220px;"><canvas id="chartCap_T2"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> Variación ≤±5% respecto a fabricación</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Corriente de Excitación — Fases U/V/W (mA) </div><div class="chart-container" style="height:220px;"><canvas id="chartExcit_T2"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> Comparación histórica por campaña</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Error TTR TC's — Bushings (%) </div><div class="chart-container" style="height:220px;"><canvas id="chartTC_T2"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEEE C57.152 / IEC 60044: Fases R/S/T y Neutro</div></div><div class="card" style="grid-column:span 2;"><div class="card-title" style="font-size:14px;"><i class="fas fa-wave-square"></i> SFRA — Análisis de Respuesta en Frecuencia <span class="chart-limit-label success" style="margin-left:auto;">✅ Comparación: Ref. 2023 vs 2025</span></div><div class="chart-container" style="height:260px;"><canvas id="chartSFRA_T2"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-book"></i> <strong>IEEE C57.149-2012:</strong> Comparación entre curva de referencia (Año 0 – 2023) y última medición disponible (2025). Desviación &lt;±1 dB indica condición mecánica normal del devanado. SFRA evalúa integridad mecánica: desplazamientos axiales/radiales, deformación de devanados.</div></div></div></div>
+    </div>
+
+    <!-- ===== TAB 3: ANÁLISIS DE ACEITE ===== -->
+    <div class="tab-pane" id="tab3">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-flask"></i> Análisis Fisicoquímico del Aceite
+            <span class="card-subtitle">Color · Agua · TI · IA · TRD · Factor de Potencia</span></div>
+            <div class="ieee-note"><i class="fas fa-book"></i>
+            <strong>Referencias normativas:</strong> IEC 60422:2013 (Cat. A, ≥72.5 kV) · IEEE C57.106 · ASTM D924/D971/D974/D1500/IEC 60814/60156.
+            Zonas: 🟢 Excelente · 🟡 Alerta · 🔴 Crítico.</div>
+        </div>
+        <div class="filter-banner t1" id="fb_tab3_t1" style="display:none;"><i class="fas fa-filter"></i> Mostrando: <strong>Transformador 1 — SN 8128922</strong><button class="back-btn" onclick="clearSelection()">↩ Cambiar</button></div><div class="filter-banner t2" id="fb_tab3_t2" style="display:none;"><i class="fas fa-filter"></i> Mostrando: <strong>Transformador 2 — SN 8128923</strong><button class="back-btn" onclick="clearSelection()">↩ Cambiar</button></div><div class="no-sel-notice" id="nosel_tab3"><i class="fas fa-hand-pointer"></i><h3>Selecciona un Transformador</h3><p>Ve a <strong>Datos Generales</strong> y haz clic en Transformador 1 o Transformador 2</p></div>
+        <div class="transformer-section t1 transformer-data-t1" id="sec_t1_tab3" style="margin-bottom:24px; display:none;"><div class="transformer-header"><i class="fas fa-circle" style="color:#2E86C1; font-size:14px;"></i><strong>Transformador 1</strong><span class="badge-t1">SN 8128922</span></div><div class="chart-grid-2"><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Color ASTM D1500 </div><div class="chart-container" style="height:200px;"><canvas id="chartColor_T1"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEC 60422: 🟢 ≤1.0 · 🟡 ≤3.0 · 🔴 >3.0</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Contenido de Agua (ppm) — IEC 60814 </div><div class="chart-container" style="height:200px;"><canvas id="chartAgua_T1"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEC 60422 Cat.A: 🟢 ≤10 ppm · 🟡 ≤20 ppm · 🔴 >30 ppm</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Tensión Interfacial (dynes/cm) — ASTM D971 </div><div class="chart-container" style="height:200px;"><canvas id="chartTI_T1"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEEE C57.106: 🟢 ≥40 · 🟡 ≥30 · 🔴 <22 dynes/cm</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Índice de Acidez (mgKOH/g) — ASTM D974 </div><div class="chart-container" style="height:200px;"><canvas id="chartIA_T1"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEC 60422: 🟢 ≤0.03 · 🟡 ≤0.08 · 🔴 >0.20 mgKOH/g</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Tensión de Ruptura Dieléctrica (kV) — IEC 60156 </div><div class="chart-container" style="height:200px;"><canvas id="chartTRD_T1"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEC 60422 Cat.A: 🟢 ≥60 kV · 🟡 ≥40 kV · 🔴 <30 kV</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Factor de Potencia (% a 25°C) — ASTM D924 </div><div class="chart-container" style="height:200px;"><canvas id="chartFPO_T1"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEEE C57.106: 🟢 ≤0.05% · 🟡 ≤0.20% · 🔴 >0.50%</div></div></div></div>
+        <div class="transformer-section t2 transformer-data-t2" id="sec_t2_tab3" style="margin-bottom:24px; display:none;"><div class="transformer-header"><i class="fas fa-circle" style="color:#E67E22; font-size:14px;"></i><strong>Transformador 2</strong><span class="badge-t2">SN 8128923</span></div><div class="chart-grid-2"><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Color ASTM D1500 </div><div class="chart-container" style="height:200px;"><canvas id="chartColor_T2"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEC 60422: 🟢 ≤1.0 · 🟡 ≤3.0 · 🔴 >3.0</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Contenido de Agua (ppm) </div><div class="chart-container" style="height:200px;"><canvas id="chartAgua_T2"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEC 60422: 🟢 ≤10 ppm · 🟡 ≤20 ppm · 🔴 >30 ppm</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Tensión Interfacial (dynes/cm) </div><div class="chart-container" style="height:200px;"><canvas id="chartTI_T2"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEEE C57.106: 🟢 ≥40 · 🟡 ≥30 · 🔴 <22</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Índice de Acidez (mgKOH/g) </div><div class="chart-container" style="height:200px;"><canvas id="chartIA_T2"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEC 60422: 🟢 ≤0.03 · 🟡 ≤0.08 · 🔴 >0.20</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Tensión de Ruptura Dieléctrica (kV) </div><div class="chart-container" style="height:200px;"><canvas id="chartTRD_T2"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEC 60422 Cat.A: 🟢 ≥60 · 🟡 ≥40 · 🔴 <30 kV</div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Factor de Potencia (% a 25°C) </div><div class="chart-container" style="height:200px;"><canvas id="chartFPO_T2"></canvas></div><div class="ieee-note" style="font-size:11px;padding:4px 10px;"><i class="fas fa-info-circle"></i> IEEE C57.106: 🟢 ≤0.05% · 🟡 ≤0.20% · 🔴 >0.50%</div></div></div></div>
+    </div>
+
+    <!-- ===== TAB 4: DGA / GASES ===== -->
+    <div class="tab-pane" id="tab4">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-chart-pie"></i> Análisis de Gases Disueltos (DGA) + Pentágono de Duval
+            <span class="card-subtitle">IEEE C57.104-2019 · IEC 60599</span></div>
+            <div class="ieee-note"><i class="fas fa-book"></i>
+            <strong>IEEE C57.104-2019 Tabla 1:</strong>
+            Cond.1 🟢 · Cond.2 🟡 · Cond.3-4 🔴 |
+            <strong>Pentágono de Duval (IEC 60599):</strong> Diagnóstico automático del último análisis.</div>
+        </div>
+        <div class="filter-banner t1" id="fb_tab4_t1" style="display:none;"><i class="fas fa-filter"></i> Mostrando: <strong>Transformador 1 — SN 8128922</strong><button class="back-btn" onclick="clearSelection()">↩ Cambiar</button></div><div class="filter-banner t2" id="fb_tab4_t2" style="display:none;"><i class="fas fa-filter"></i> Mostrando: <strong>Transformador 2 — SN 8128923</strong><button class="back-btn" onclick="clearSelection()">↩ Cambiar</button></div><div class="no-sel-notice" id="nosel_tab4"><i class="fas fa-hand-pointer"></i><h3>Selecciona un Transformador</h3><p>Ve a <strong>Datos Generales</strong> y haz clic en Transformador 1 o Transformador 2</p></div>
+        <div class="transformer-section t1 transformer-data-t1" id="sec_t1_tab4" style="margin-bottom:24px; display:none;"><div class="transformer-header"><i class="fas fa-circle" style="color:#2E86C1; font-size:14px;"></i><strong>Transformador 1</strong><span class="badge-t1">SN 8128922</span></div><div class="chart-grid-4"><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> H₂: Hidrógeno (ppm) — IEEE C57.104 </div><div class="chart-container" style="height:190px;"><canvas id="chartH2_T1"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> CH₄: Metano (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartCH4_T1"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> C₂H₂: Acetileno (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartC2H2_T1"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> C₂H₆: Etano (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartC2H6_T1"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> C₂H₄: Etileno (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartC2H4_T1"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> CO: Monóxido de Carbono (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartCO_T1"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> CO₂: Dióxido de Carbono (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartCO2_T1"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> TDCG: Total Gases Combustibles (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartTDCG_T1"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> O₂: Oxígeno (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartO2_T1"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Relación CO₂/CO </div><div class="chart-container" style="height:190px;"><canvas id="chartCO2CO_T1"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> TDHHG: Gases de Alta Calor (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartTDHHG_T1"></canvas></div></div><div class="card" style="grid-column:span 2;"><div class="card-title" style="font-size:14px;"><i class="fas fa-draw-polygon"></i> Pentágono de Duval — Diagnóstico T1 <span class="chart-limit-label info" style="margin-left:auto;">IEEE C57.104-2019 · IEC 60599</span></div><div class="ieee-note" style="margin-bottom:10px;"><i class="fas fa-book"></i> <strong>Método Duval:</strong> Los 5 vértices representan CH₄, C₂H₄, C₂H₆, H₂ y C₂H₂. La posición del punto diagnóstico indica el tipo de falla según IEC 60599.</div><div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;"><div style="flex:0 0 auto;"><canvas id="duvalCanvas_T1" width="420" height="420" style="max-width:100%;"></canvas></div><div style="flex:1;min-width:220px;"><h4 style="font-size:13px;font-weight:700;color:#0b2b5c;margin-bottom:12px;">Zonas de diagnóstico (IEC 60599)</h4><div style="display:flex;flex-direction:column;gap:6px;font-size:12px;"><div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:3px;background:rgba(167,243,208,0.8);display:inline-block;border:1px solid #6ee7b7;"></span><strong>PD</strong> — Descargas parciales</div><div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:3px;background:rgba(147,197,253,0.8);display:inline-block;border:1px solid #93c5fd;"></span><strong>T1</strong> — Falla térmica &lt;300°C</div><div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:3px;background:rgba(253,230,138,0.8);display:inline-block;border:1px solid #fcd34d;"></span><strong>T2</strong> — Falla térmica 300–700°C</div><div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:3px;background:rgba(253,186,116,0.8);display:inline-block;border:1px solid #fdba74;"></span><strong>T3</strong> — Falla térmica &gt;700°C</div><div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:3px;background:rgba(249,168,212,0.8);display:inline-block;border:1px solid #f9a8d4;"></span><strong>D1</strong> — Descarga eléctrica baja energía</div><div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:3px;background:rgba(196,181,253,0.8);display:inline-block;border:1px solid #c4b5fd;"></span><strong>D2</strong> — Descarga eléctrica alta energía</div><div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:3px;background:rgba(203,213,225,0.8);display:inline-block;border:1px solid #94a3b8;"></span><strong>S</strong> — Sin anomalía</div></div><div style="margin-top:16px;padding:14px;background:#eaf4fc;border-radius:10px;border-left:4px solid #2E86C1;"><div style="font-size:11px;color:#64748b;margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Último análisis — Oct-2024</div><div id="duvalDiag_T1" style="text-align:center;padding:8px 0;">Calculando...</div></div></div></div></div></div></div>
+        <div class="transformer-section t2 transformer-data-t2" id="sec_t2_tab4" style="margin-bottom:24px; display:none;"><div class="transformer-header"><i class="fas fa-circle" style="color:#E67E22; font-size:14px;"></i><strong>Transformador 2</strong><span class="badge-t2">SN 8128923</span></div><div class="chart-grid-4"><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> H₂: Hidrógeno (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartH2_T2"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> CH₄: Metano (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartCH4_T2"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> C₂H₂: Acetileno (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartC2H2_T2"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> C₂H₆: Etano (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartC2H6_T2"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> C₂H₄: Etileno (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartC2H4_T2"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> CO: Monóxido de Carbono (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartCO_T2"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> CO₂: Dióxido de Carbono (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartCO2_T2"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> TDCG: Total Gases Combustibles (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartTDCG_T2"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> O₂: Oxígeno (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartO2_T2"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Relación CO₂/CO </div><div class="chart-container" style="height:190px;"><canvas id="chartCO2CO_T2"></canvas></div></div><div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> TDHHG: Gases de Alta Calor (ppm) </div><div class="chart-container" style="height:190px;"><canvas id="chartTDHHG_T2"></canvas></div></div><div class="card" style="grid-column:span 2;"><div class="card-title" style="font-size:14px;"><i class="fas fa-draw-polygon"></i> Pentágono de Duval — Diagnóstico T2 <span class="chart-limit-label info" style="margin-left:auto;">IEEE C57.104-2019 · IEC 60599</span></div><div class="ieee-note" style="margin-bottom:10px;"><i class="fas fa-book"></i> <strong>Método Duval:</strong> Los 5 vértices representan CH₄, C₂H₄, C₂H₆, H₂ y C₂H₂. La posición del punto diagnóstico indica el tipo de falla según IEC 60599.</div><div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;"><div style="flex:0 0 auto;"><canvas id="duvalCanvas_T2" width="420" height="420" style="max-width:100%;"></canvas></div><div style="flex:1;min-width:220px;"><h4 style="font-size:13px;font-weight:700;color:#0b2b5c;margin-bottom:12px;">Zonas de diagnóstico (IEC 60599)</h4><div style="display:flex;flex-direction:column;gap:6px;font-size:12px;"><div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:3px;background:rgba(167,243,208,0.8);display:inline-block;border:1px solid #6ee7b7;"></span><strong>PD</strong> — Descargas parciales</div><div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:3px;background:rgba(147,197,253,0.8);display:inline-block;border:1px solid #93c5fd;"></span><strong>T1</strong> — Falla térmica &lt;300°C</div><div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:3px;background:rgba(253,230,138,0.8);display:inline-block;border:1px solid #fcd34d;"></span><strong>T2</strong> — Falla térmica 300–700°C</div><div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:3px;background:rgba(253,186,116,0.8);display:inline-block;border:1px solid #fdba74;"></span><strong>T3</strong> — Falla térmica &gt;700°C</div><div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:3px;background:rgba(249,168,212,0.8);display:inline-block;border:1px solid #f9a8d4;"></span><strong>D1</strong> — Descarga eléctrica baja energía</div><div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:3px;background:rgba(196,181,253,0.8);display:inline-block;border:1px solid #c4b5fd;"></span><strong>D2</strong> — Descarga eléctrica alta energía</div><div style="display:flex;align-items:center;gap:8px;"><span style="width:14px;height:14px;border-radius:3px;background:rgba(203,213,225,0.8);display:inline-block;border:1px solid #94a3b8;"></span><strong>S</strong> — Sin anomalía</div></div><div style="margin-top:16px;padding:14px;background:#fef5ec;border-radius:10px;border-left:4px solid #E67E22;"><div style="font-size:11px;color:#64748b;margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Último análisis — Oct-2024</div><div id="duvalDiag_T2" style="text-align:center;padding:8px 0;">Calculando...</div></div></div></div></div></div></div>
+    </div>
+    <!-- ===== TAB 5: VIDA REMANENTE ===== -->
+    <div class="tab-pane" id="tab5">
+        <div class="card">
+            <div class="card-title"><i class="fas fa-chart-line"></i> Vida Remanente Estimada <span class="card-subtitle">Metodología DNV · Furanos (2-FAL)</span></div>
+            <div style="display:flex; flex-wrap:wrap; gap:12px;">
+                <span class="badge-status t1" id="summaryDNV_T1"><i class="fas fa-circle" style="color:#2E86C1; font-size:10px;"></i> T1: calculando…</span>
+                <span class="badge-status t2" id="summaryDNV_T2"><i class="fas fa-circle" style="color:#E67E22; font-size:10px;"></i> T2: calculando…</span>
+                <span class="badge-status excellent">✅ DNV: Confiable</span>
+                <span class="badge-status excellent">✅ EPRI: Confiable</span>
+            </div>
+            <div class="ieee-note"><i class="fas fa-book"></i> <strong>Referencia:</strong> Informe DNV P-21-R-031-PA, Rev. 1 (03-06-2022).</div>
+            <div class="ieee-note"><i class="fas fa-flask"></i> <strong>Algoritmo DNV (cálculo automático):</strong> DP estimado a partir de Furanos (2-FAL) mediante la correlación S.D. Myers a 65°C, DP inicial = 1000 (papel Kraft estándar), DP fin de vida técnica = 200. Los años de vida consumida/remanente son referenciales, asumiendo una vida útil de diseño de 40 años (IEEE C57.91 / CIGRÉ TB 445), ya que la conversión exacta a años requiere el perfil de carga histórico y la temperatura del punto caliente, no disponibles en este Dashboard.</div>
+        </div>
+
+
+        <div class="filter-banner t1" id="fb_tab5_t1" style="display:none;"><i class="fas fa-filter"></i> Mostrando: <strong>Transformador 1 — SN 8128922</strong><button class="back-btn" onclick="clearSelection()">↩ Cambiar</button></div>
+        <div class="filter-banner t2" id="fb_tab5_t2" style="display:none;"><i class="fas fa-filter"></i> Mostrando: <strong>Transformador 2 — SN 8128923</strong><button class="back-btn" onclick="clearSelection()">↩ Cambiar</button></div>
+        <div class="no-sel-notice" id="nosel_tab5"><i class="fas fa-hand-pointer"></i><h3>Selecciona un Transformador</h3><p>Ve a <strong>Datos Generales</strong> y haz clic en Transformador 1 o Transformador 2</p></div>
+        <!-- T1 -->
+        <div class="transformer-section t1 transformer-data-t1" id="sec_t1_tab5" style="margin-bottom:24px; display:none;">
+            <div class="transformer-header"><i class="fas fa-circle" style="color:#2E86C1; font-size:14px;"></i><strong>Transformador 1</strong><span class="badge-t1">SN 8128922</span></div>
+
+            <div class="card" style="margin-bottom:16px;">
+                <div class="card-title" style="font-size:14px;"><i class="fas fa-microscope"></i> Diagnóstico Automático — Metodología DNV <span class="card-subtitle">Furanos (2-FAL) → DP → Vida Remanente · cálculo dinámico</span></div>
+                <div class="grid-3" id="dnvStats_T1">
+                    <div class="stat-card t1"><div class="label">DP Estimado</div><div class="value" id="dnvDP_T1">—</div></div>
+                    <div class="stat-card t1"><div class="label">% Vida Restante</div><div class="value" id="dnvPctVida_T1">—</div></div>
+                    <div class="stat-card orange"><div class="label">% Pérdida de Vida</div><div class="value" id="dnvPctPerdida_T1">—</div></div>
+                    <div class="stat-card blue"><div class="label">Vida Consumida (ref.)</div><div class="value" id="dnvConsumida_T1">—</div></div>
+                    <div class="stat-card green"><div class="label">Vida Remanente (ref.)</div><div class="value" id="dnvRemanente_T1">—</div></div>
+                    <div class="stat-card t1"><div class="label">Estado del Aislamiento</div><div class="value" id="dnvEstado_T1" style="font-size:15px;">—</div></div>
+                </div>
+                <div class="ieee-note" id="dnvDiag_T1"><i class="fas fa-book"></i> Calculando diagnóstico…</div>
+            </div>
+
+            <div class="chart-grid-2">
+                <div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-draw-polygon"></i> Estimativa de Vida Remanente</div><div class="chart-container" style="height:260px;"><canvas id="chartEstimativaVida_T1"></canvas></div></div>
+                <div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Evolución de Furanos</div><div class="chart-container" style="height:260px;"><canvas id="chartFuranos_T1"></canvas></div></div>
+            </div>
+            <div class="table-wrap" style="margin-top:12px;"><table style="font-size:12px;"><thead><tr><th>Metodología</th><th>Base de Cálculo</th><th>DP Estimado</th><th>Vida Remanente</th><th>Observación</th></tr></thead><tbody>
+                <tr><td><strong>DNV (cálculo automático)</strong></td><td>Furanos (S.D. Myers 65°C)</td><td id="tblDP_T1">—</td><td id="tblVida_T1">—</td><td><span class="badge-status excellent">✅ Confiable</span></td></tr>
+                <tr><td><strong>EPRI ASAP</strong></td><td>Índice de Degradación</td><td>1,186</td><td>~28 años</td><td><span class="badge-status excellent">✅ Confiable</span></td></tr>
+            </tbody></table></div>
+        </div>
+        <!-- T2 -->
+        <div class="transformer-section t2 transformer-data-t2" id="sec_t2_tab5" style="display:none;">
+            <div class="transformer-header"><i class="fas fa-circle" style="color:#E67E22; font-size:14px;"></i><strong>Transformador 2</strong><span class="badge-t2">SN 8128923</span></div>
+
+            <div class="card" style="margin-bottom:16px;">
+                <div class="card-title" style="font-size:14px;"><i class="fas fa-microscope"></i> Diagnóstico Automático — Metodología DNV <span class="card-subtitle">Furanos (2-FAL) → DP → Vida Remanente · cálculo dinámico</span></div>
+                <div class="grid-3" id="dnvStats_T2">
+                    <div class="stat-card t2"><div class="label">DP Estimado</div><div class="value" id="dnvDP_T2">—</div></div>
+                    <div class="stat-card t2"><div class="label">% Vida Restante</div><div class="value" id="dnvPctVida_T2">—</div></div>
+                    <div class="stat-card orange"><div class="label">% Pérdida de Vida</div><div class="value" id="dnvPctPerdida_T2">—</div></div>
+                    <div class="stat-card blue"><div class="label">Vida Consumida (ref.)</div><div class="value" id="dnvConsumida_T2">—</div></div>
+                    <div class="stat-card green"><div class="label">Vida Remanente (ref.)</div><div class="value" id="dnvRemanente_T2">—</div></div>
+                    <div class="stat-card t2"><div class="label">Estado del Aislamiento</div><div class="value" id="dnvEstado_T2" style="font-size:15px;">—</div></div>
+                </div>
+                <div class="ieee-note" id="dnvDiag_T2"><i class="fas fa-book"></i> Calculando diagnóstico…</div>
+            </div>
+
+            <div class="chart-grid-2">
+                <div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-draw-polygon"></i> Estimativa de Vida Remanente</div><div class="chart-container" style="height:260px;"><canvas id="chartEstimativaVida_T2"></canvas></div></div>
+                <div class="card"><div class="card-title" style="font-size:14px;"><i class="fas fa-chart-line"></i> Evolución de Furanos</div><div class="chart-container" style="height:260px;"><canvas id="chartFuranos_T2"></canvas></div></div>
+            </div>
+            <div class="table-wrap" style="margin-top:12px;"><table style="font-size:12px;"><thead><tr><th>Metodología</th><th>Base de Cálculo</th><th>DP Estimado</th><th>Vida Remanente</th><th>Observación</th></tr></thead><tbody>
+                <tr><td><strong>DNV (cálculo automático)</strong></td><td>Furanos (S.D. Myers 65°C)</td><td id="tblDP_T2">—</td><td id="tblVida_T2">—</td><td><span class="badge-status excellent">✅ Confiable</span></td></tr>
+                <tr><td><strong>EPRI ASAP</strong></td><td>Índice de Degradación</td><td>1,188</td><td>~30 años</td><td><span class="badge-status excellent">✅ Confiable</span></td></tr>
+            </tbody></table></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ===== FOOTER ===== -->
+<div class="footer">
+    <i class="fas fa-database"></i> Datos basados en informe DNV P-21-R-031-PA, Rev. 1 (03-06-2022) · Central Hidroeléctrica El Platanal · CELEPSA
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<!-- js/data.js -->
+<script>
+const DATA = {
+    t1: {
+        name: 'Transformador 1',
+        sn: '8128922',
+        year: 2008,
+        service: 2010,
+        electric: {
+            labels: ["2013", "2014", "31/10/2016", "15/05/2017", "2017", "2018", "2019", "2020", "2021", "07/2022", "15/06/2023", "19/06/2023", "25/07/2024", "26/03/2025"],
+            ttr: { labels: ["2013", "2014", "31/10/2016", "15/05/2017", "2017", "2018", "2019", "2020", "2021", "07/2022", "15/06/2023", "19/06/2023", "25/07/2024", "26/03/2025"], toma1: [null, null, -0.373, -0.49, null, 0.15, -0.367, 0.15, -0.363, -0.373, -0.363, null, -0.363, -0.367], toma2: [null, null, null, null, null, 0.143, -0.367, 0.143, -0.363, -0.37, -0.36, null, -0.357, -0.363], toma3: [null, null, null, null, null, 0.13, -0.367, 0.13, -0.363, -0.373, -0.363, null, -0.363, -0.36], toma4: [null, null, null, null, null, 0.12, -0.37, 0.12, -0.357, -0.367, -0.367, null, -0.363, -0.367], toma5: [null, null, null, null, null, 0.097, -0.37, 0.097, -0.367, -0.373, -0.37, null, -0.373, -0.367], tomaMax: [null, null, -0.373, -0.49, null, 0.15, -0.367, 0.15, -0.357, -0.367, -0.36, null, -0.357, -0.36] },
+            ra:  { labels: ["2013", "2014", "31/10/2016", "15/05/2017", "2017", "2018", "2019", "2020", "2021", "07/2022", "15/06/2023", "19/06/2023", "25/07/2024", "26/03/2025"], at_masa: [23.798, 40.9, null, 3.65, null, 89.5, 0.56, 34.5, 0.606, 0.86505, 0.0964, null, 0.6877, 0.17506], bt_masa: [19.687, 27.2, 112.0, 49.3, null, 40.8, 10.8, 0.1587, 63.8, 55.53, 28.3, null, 39.381, 105.62], at_bt: [26.498, 115.2, 117.0, 60.4, null, 55.15, 41.4, 92.5, 188.7, 62.29, 93.7, null, 213.3, 85.09] },
+            fp:  { labels: ["2013", "2014", "31/10/2016", "15/05/2017", "2017", "2018", "2019", "2020", "2021", "07/2022", "15/06/2023", "19/06/2023", "25/07/2024", "26/03/2025"], clh: [null, null, null, null, null, 0.1398, 0.1225, 0.1828, 0.2149, 0.117, 0.1835, null, 0.123, 0.1972], cl: [null, null, 0.5922, null, null, 0.4214, 0.4495, 0.4891, 0.5486, 0.4162, 0.5842, null, 0.4515, 0.6037] },
+            cap: { labels: ["2013", "2014", "31/10/2016", "15/05/2017", "2017", "2018", "2019", "2020", "2021", "07/2022", "15/06/2023", "19/06/2023", "25/07/2024", "26/03/2025"], clh: [null, null, null, null, null, 7137.5, 7192.4, 7197.3, 7213.5, 7199.4, 7205.4, null, 7204.5, 7199.7], cl: [null, null, 18004.0, null, null, 17917.0, 17988.0, 18035.0, 18081.0, 17973.0, 18029.0, null, 17994.0, 18023.0] },
+            excit: { labels: ["2013", "2014", "31/10/2016", "15/05/2017", "2017", "2018", "2019", "2020", "2021", "07/2022", "15/06/2023", "19/06/2023", "25/07/2024", "26/03/2025"], u_ma: [null, null, null, null, null, null, null, null, 200.14, 200.92, 204.73, null, 200.01, 195.45], v_ma: [null, null, null, null, null, null, null, null, 167.8, 169.27, 171.58, null, 164.96, 158.41], w_ma: [null, null, null, null, null, null, null, null, 234.52, 235.79, 237.78, null, 235.4, 228.88],
+                      u_kw: [null, null, null, null, null, null, null, null, 7.9836, 8.2087, 8.9273, null, 7.6805, 6.1351], v_kw: [null, null, null, null, null, null, null, null, 7.7538, 7.9897, 8.5925, null, 7.2285, 5.695], w_kw: [null, null, null, null, null, null, null, null, 8.0505, 8.2603, 8.8073, null, 7.9062, 6.7241] },
+            tc: {
+                labels: ["2013", "2014", "31/10/2016", "15/05/2017", "2017", "2018", "2019", "2020", "2021", "07/2022", "15/06/2023", "19/06/2023", "25/07/2024", "26/03/2025"],
+                tc11r: [null, null, null, null, null, -69.77, -66.86, -59.39, -63.95, -61.85, -68.7, null, -77.65, -36.55], tc14r: [null, null, null, null, null, -67.77, -21.11, -37.24, -39.07, -36.0, -38.2, null, -73.27, -37.62],
+                tc12s: [null, null, null, null, null, -66.63, -71.45, -68.81, -64.59, -61.24, -52.43, null, -70.38, -68.77], tc15s: [null, null, null, null, null, -65.73, -38.46, -59.95, -48.06, -64.65, -71.18, null, -75.21, -68.32],
+                tc13t: [null, null, null, null, null, -69.9, 17.28, -17.41, -26.5, -17.56, -55.48, null, -62.97, -25.15], tc16t: [null, null, null, null, null, -61.72, -35.16, -17.42, -40.61, -12.71, -7.3, null, -59.64, -20.72],
+                tc20n: [null, null, null, null, null, null, 9.68, -27.75, 25.63, 18.44, 28.49, null, 3.68, -0.92]
+            }
+        },
+        oil: {
+            labels: ["16/09/2011", "25/04/2012", "21/06/2013", "01/04/2014", "16/04/2015", "19/11/2015", "02/06/2016", "31/10/2016", "15/05/2017", "14/11/2017", "03/05/2018", "06/06/2020", "02/11/2020", "19/05/2021", "22/09/2021", "02/05/2023", "24/10/2023", "25/07/2024", "27/10/2024", "26/03/2025", "13/04/2026"],
+            color: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0], agua: [2.0, 4.0, 3.0, 3.0, 6.0, 4.0, 6.0, 5.0, 5.0, 4.0, 5.0, 6.0, 4.0, 6.0, 8.0, 7.0, 8.0, 8.0, 7.0, 10.0, 7.0],
+            ti: [38.0, 34.7, 39.7, 37.5, 44.6, 45.5, 48.0, 46.0, 43.2, 44.1, 40.9, 41.95, 43.0, 43.3, 42.1, 42.4, 39.3, 46.6, 44.5, 41.9, 45.6], ia: [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.02, 0.02, 0.02, 0.02],
+            trd: [32.0, 57.0, 52.0, 49.0, 58.0, 61.0, 72.0, 66.0, 46.0, 63.0, 56.0, 47.0, 57.0, 55.0, 50.0, 51.0, 58.0, 56.0, 71.7, 74.9, 78.7], fp: [0.116, 0.052, 0.019, 0.027, 0.024, 0.014, 0.005, 0.005, 0.005, 0.005, 0.005, 0.006, 0.003, 0.005, 0.003, 0.006, 0.004, 0.01, 0.013, 0.009, 0.009]
+        },
+        dga: {
+            labels: ["16/09/2011", "25/04/2012", "21/06/2013", "10/04/2014", "16/04/2015", "19/11/2015", "02/06/2016", "31/10/2016", "15/05/2017", "14/11/2017", "03/05/2018", "26/10/2018", "17/05/2019", "25/11/2019", "06/06/2020", "02/11/2020", "19/05/2021", "22/09/2021", "18/04/2022", "21/10/2022", "02/05/2023", "25/07/2024", "27/10/2024", "26/03/2025", "13/04/2026"],
+            h2: [15.0, 15.0, 10.0, 10.0, 10.0, 10.0, 0.0, 15.0, 10.0, 11.0, 10.0, 11.0, 10.0, 10.0, 16.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 14.0, 2.0], ch4: [5.0, 5.0, 10.0, 11.0, 5.0, 5.0, 7.0, 2.0, 5.0, 11.0, 11.0, 4.0, 8.0, 13.0, 5.0, 2.0, 5.0, 5.0, 8.0, 2.0, 5.0, 6.0, 4.0, 8.0, 6.0], c2h2: [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+            c2h6: [2.0, 2.0, 2.0, 3.0, 2.0, 2.0, 0.0, 0.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0], c2h4: [3.0, 2.0, 4.0, 2.0, 5.0, 7.0, 4.0, 0.0, 4.0, 6.0, 7.0, 3.0, 5.0, 9.0, 8.0, 2.0, 5.0, 5.0, 10.0, 2.0, 7.0, 2.0, 5.0, 6.0, 9.0], co: [284.0, 285.0, 574.0, 926.0, 464.0, 653.0, 694.0, 145.0, 424.0, 1295.0, 1213.0, 347.0, 676.0, 1052.0, 853.0, 160.0, 419.0, 493.0, 767.0, 244.0, 511.0, 159.0, 253.0, 492.0, 456.0],
+            co2: [894.0, 1360.0, 1800.0, 3520.0, 2420.0, 2650.0, 3231.0, 1559.0, 2680.0, 3495.0, 4853.0, 2282.0, 3743.0, 3925.0, 4133.0, 1557.0, 2719.0, 2404.0, 4397.0, 1677.0, 2992.0, 1229.0, 1753.0, 2394.0, 2468.0], n2: [9710.0, 57100.0, 44500.0, 78700.0, 40200.0, 54300.0, 47159.0, 17546.0, 35600.0, 102941.0, 77245.0, 29908.0, 46701.0, 89445.0, 64257.0, 21906.0, 73507.0, 49201.0, 65918.0, 68524.0, 47242.0, 24403.0, 34449.0, 57970.0, 34456.0], o2: [2690.0, 14300.0, 7460.0, 10600.0, 5970.0, 7430.0, 2232.0, 2626.0, 5590.0, 9818.0, 4801.0, 4386.0, 4197.0, 9772.0, 6908.0, 4929.0, 14324.0, 6499.0, 7892.0, 14666.0, 4923.0, 4033.0, 5519.0, 8324.0, 1844.0],
+            co2co: [3.15, 4.77, 3.14, 3.8, 5.22, 4.06, 4.66, 10.75, 6.32, 2.7, 4.0, 6.58, 5.54, 3.73, 4.85, 9.73, 6.49, 4.88, 5.73, 6.87, 5.86, 7.73, 6.93, 4.87, 5.41], tdcg: [311.0, 311.0, 602.0, 954.0, 488.0, 679.0, 705.0, 162.0, 446.0, 1326.0, 1244.0, 367.0, 701.0, 1086.0, 885.0, 176.0, 441.0, 515.0, 797.0, 260.0, 535.0, 167.0, 262.0, 520.0, 474.0], tdhhg: [12.0, 11.0, 18.0, 18.0, 14.0, 16.0, 11.0, 2.0, 12.0, 20.0, 21.0, 9.0, 15.0, 24.0, 16.0, 6.0, 12.0, 12.0, 20.0, 6.0, 14.0, 8.0, 9.0, 14.0, 16.0]
+        },
+        life: {
+            furansLabels: ["16/09/2011", "25/04/2012", "21/06/2013", "01/04/2014", "16/04/2015", "19/11/2015", "02/06/2016", "31/10/2016", "15/05/2017", "14/11/2017", "03/05/2018", "26/10/2018", "17/05/2019", "25/11/2019", "06/06/2020", "02/11/2020", "19/05/2021", "22/09/2021", "21/10/2022", "02/05/2023", "24/10/2023", "25/07/2024", "26/10/2024", "27/10/2024"],
+            furans: [23.0, 23.0, 23.0, 27.0, 26.0, 26.0, 27.0, 25.0, 30.0, 29.0, 30.0, 28.0, 30.0, 30.0, 32.0, 29.0, 31.0, 32.0, 30.0, 33.0, 32.0, 27.0, 27.0, 31.0],
+            dp: { dnv: 1186, epri: 1186, usbr: 420 },
+            vida: { dnv: 30, epri: 28, usbr: 8, difusa: 19.5 },
+            dnvRef: 776
+        }
+    },
+    t2: {
+        name: 'Transformador 2',
+        sn: '8128923',
+        year: 2008,
+        service: 2010,
+        electric: {
+            labels: ["2013", "2014", "31/10/2016", "15/05/2017", "2017", "2018", "2019", "2020", "2021", "07/2022", "15/06/2023", "19/06/2023", "25/07/2024", "26/03/2025"],
+            ttr: { labels: ["2013", "2014", "31/10/2016", "15/05/2017", "2017", "2018", "2019", "2020", "2021", "07/2022", "15/06/2023", "19/06/2023", "25/07/2024", "26/03/2025"], toma1: [null, null, -0.78, null, null, -0.28, null, -0.773, -0.76, -0.773, null, -0.78, -0.793, -0.8], toma2: [null, null, null, null, null, -0.27, null, -0.75, -0.74, -0.747, null, -0.757, -0.773, -0.773], toma3: [null, null, null, null, null, -0.273, null, -0.74, -0.727, -0.737, null, -0.743, -0.757, -0.76], toma4: [null, null, null, null, null, -0.27, null, -0.723, -0.717, -0.723, null, -0.727, -0.743, -0.747], toma5: [null, null, null, null, null, -0.273, null, -0.72, -0.71, -0.717, null, -0.72, -0.737, -0.743], tomaMax: [null, null, -0.78, null, null, -0.27, null, -0.72, -0.71, -0.717, null, -0.72, -0.737, -0.743] },
+            ra:  { labels: ["2013", "2014", "31/10/2016", "15/05/2017", "2017", "2018", "2019", "2020", "2021", "07/2022", "15/06/2023", "19/06/2023", "25/07/2024", "26/03/2025"], at_masa: [null, null, 73.5, null, null, 230.65, 0.083, 58.7, null, 0.03797, null, 0.0328, 2.35575, 0.0629], bt_masa: [null, null, 182.0, null, null, 152.62, 287.0, 0.149, null, 169.0, null, 55.7, 201.72, 50.2], at_bt: [null, null, 143.0, null, null, 55.36, 133.0, 218.0, null, 119.75, null, 180.0, 665.89, 28.7] },
+            fp:  { labels: ["2013", "2014", "31/10/2016", "15/05/2017", "2017", "2018", "2019", "2020", "2021", "07/2022", "15/06/2023", "19/06/2023", "25/07/2024", "26/03/2025"], clh: [null, null, null, null, null, 0.1569, 0.1166, 0.1204, 0.1962, null, null, 0.145, 0.1565, 0.1622], cl: [null, null, 0.3626, null, null, 0.3039, 0.2704, 0.2911, 0.4004, null, null, 0.2775, 0.3322, 0.3535] },
+            cap: { labels: ["2013", "2014", "31/10/2016", "15/05/2017", "2017", "2018", "2019", "2020", "2021", "07/2022", "15/06/2023", "19/06/2023", "25/07/2024", "26/03/2025"], clh: [null, null, null, null, null, 7065.8, 7117.8, 7116.5, 7124.2, null, null, 7127.7, 7128.4, 7118.5], cl: [null, null, 17507.0, null, null, 17443.0, 17504.0, 17049.0, 17547.0, null, null, 17528.0, 17531.0, 17510.0] },
+            excit: { labels: ["2013", "2014", "31/10/2016", "15/05/2017", "2017", "2018", "2019", "2020", "2021", "07/2022", "15/06/2023", "19/06/2023", "25/07/2024", "26/03/2025"], u_ma: [null, null, null, null, null, null, null, null, 349.91, 355.03, null, 357.44, 290.58, 291.94], v_ma: [null, null, null, null, null, null, null, null, 336.82, 341.11, null, 343.13, 277.75, 279.05], w_ma: [null, null, null, null, null, null, null, null, 303.9, 309.46, null, 312.98, 255.47, 257.31],
+                      u_kw: [null, null, null, null, null, null, null, null, 6.7386, 0.0072, null, 7.4968, 7.7573, 7.8529], v_kw: [null, null, null, null, null, null, null, null, 6.244, 0.0067, null, 6.892, 7.0261, 7.1609], w_kw: [null, null, null, null, null, null, null, null, 7.5132, 0.0083, null, 8.6602, 9.1365, 9.3881] },
+            tc: {
+                labels: ["2013", "2014", "31/10/2016", "15/05/2017", "2017", "2018", "2019", "2020", "2021", "07/2022", "15/06/2023", "19/06/2023", "25/07/2024", "26/03/2025"],
+                tc11r: [null, null, null, null, null, -73.21, null, -72.42, -72.17, -71.29, null, -66.57, -76.51, -71.69], tc14r: [null, null, null, null, null, -70.52, null, -84.64, -81.12, -65.81, null, -86.29, -76.56, -70.99],
+                tc12s: [null, null, null, null, null, -60.92, null, -37.09, -48.04, -44.32, null, -59.2, -74.54, -35.63], tc15s: [null, null, null, null, null, -57.52, null, -40.61, -48.06, -43.6, null, -58.45, -74.56, -33.54],
+                tc13t: [null, null, null, null, null, -53.52, null, -34.1, -42.29, -34.19, null, -59.8, -81.46, -33.56], tc16t: [null, null, null, null, null, -55.79, null, -31.23, -32.73, -35.04, null, -57.27, -81.67, -33.8],
+                tc20n: [null, null, null, null, null, 5.25, null, 9.33, 3.18, 0.57, null, 1.1, -0.05, -0.37]
+            }
+        },
+        oil: {
+            labels: ["16/09/2011", "25/04/2012", "01/04/2014", "16/04/2015", "19/11/2015", "02/06/2016", "31/10/2016", "15/05/2017", "14/11/2017", "03/05/2018", "26/10/2018", "17/05/2019", "25/11/2019", "06/06/2020", "02/11/2020", "19/05/2021", "22/09/2021", "02/05/2023", "24/10/2023", "25/07/2024", "26/10/2024", "26/03/2025", "13/04/2026"],
+            color: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0, 1.0, 1.0, 1.0, 1.5, 1.5], agua: [4.0, 3.0, 3.0, 5.0, 2.0, 14.0, 5.0, 5.0, 4.0, 3.0, 4.0, 4.0, 4.0, 8.0, 3.0, 4.0, 4.0, 5.0, 12.0, 7.0, 6.0, 8.0, 10.0],
+            ti: [38.4, 40.9, 39.9, 44.8, 46.0, 47.0, 47.0, 44.6, 44.7, 42.2, 44.2, 42.8, 45.4, 45.1, 45.1, 46.0, 45.0, 45.7, 44.2, 46.4, 47.0, 48.9, 37.7], ia: [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.02, 0.02, 0.02, 0.02],
+            trd: [39.0, 56.0, 56.0, 51.0, 61.0, 69.0, 69.0, 50.0, 59.0, 50.0, 56.0, 51.0, 56.0, 56.0, 55.0, 53.0, 40.0, 47.0, 47.0, 80.3, 69.0, 67.9, 73.5], fp: [1e-05, 1e-05, 1e-05, 1e-05, 1e-05, 1e-05, 1e-05, 0.051, 0.051, 0.051, 0.051, 0.037, 0.04, 0.004, 0.004, 0.003, 0.006, 0.006, 0.008, 0.003, 0.004, 0.014, 0.003]
+        },
+        dga: {
+            labels: ["16/09/2011", "25/04/2012", "01/04/2014", "16/04/2015", "19/11/2015", "02/06/2016", "31/10/2016", "15/05/2017", "14/11/2017", "03/05/2018", "26/05/2018", "17/05/2019", "25/11/2019", "06/06/2020", "02/11/2020", "19/05/2021", "22/09/2021", "18/04/2022", "21/10/2022", "02/05/2023", "24/10/2023", "25/07/2024", "26/10/2024", "26/03/2025", "13/04/2026"],
+            h2: [35.0, 35.0, 40.0, 10.0, 10.0, 24.0, 8.0, 10.0, 28.0, 27.0, 22.0, 11.0, 32.0, 39.0, 12.0, 10.0, 10.0, 10.0, 18.0, 20.0, 10.0, 0.0, 0.0, 19.0, 6.0], ch4: [6.0, 5.0, 20.0, 5.0, 6.0, 9.0, 3.0, 6.0, 13.0, 13.0, 5.0, 9.0, 14.0, 7.0, 14.0, 18.0, 18.0, 19.0, 23.0, 23.0, 28.0, 6.0, 4.0, 8.0, 7.0], c2h2: [2.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            c2h6: [2.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 2.0, 2.0, 2.0, 0.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 4.0, 5.0, 0.0, 0.0, 1.0, 1.0], c2h4: [2.0, 2.0, 3.0, 2.0, 2.0, 0.0, 0.0, 2.0, 3.0, 4.0, 2.0, 4.0, 6.0, 4.0, 5.0, 5.0, 4.0, 6.0, 6.0, 7.0, 7.0, 1.0, 3.0, 1.0, 3.0], co: [275.0, 365.0, 482.0, 205.0, 196.0, 259.0, 67.0, 176.0, 404.0, 398.0, 153.0, 286.0, 384.0, 325.0, 338.0, 368.0, 345.0, 364.0, 401.0, 426.0, 464.0, 56.0, 88.0, 175.0, 262.0],
+            co2: [840.0, 1430.0, 1950.0, 1600.0, 1130.0, 1866.0, 1065.0, 1590.0, 1964.0, 2519.0, 1289.0, 2009.0, 1950.0, 2077.0, 1915.0, 2180.0, 1651.0, 2694.0, 2303.0, 2928.0, 2795.0, 737.0, 1209.0, 1508.0, 1888.0], n2: [21700.0, 15400.0, 13300.0, 10300.0, 12700.0, 12365.0, 8509.0, 11400.0, 138574.0, 18854.0, 14170.0, 18739.0, 42249.0, 53013.0, 19933.0, 49598.0, 19742.0, 34052.0, 72112.0, 23551.0, 33441.0, 16277.0, 15985.0, 30787.0, 24553.0], o2: [5040.0, 3440.0, 2100.0, 2200.0, 1610.0, 851.0, 1597.0, 3230.0, 30781.0, 1979.0, 2380.0, 1856.0, 6313.0, 10511.0, 1566.0, 9271.0, 1243.0, 4867.0, 14277.0, 1926.0, 4636.0, 3358.0, 2928.0, 5555.0, 1652.0],
+            co2co: [3.05, 3.92, 4.05, 7.8, 5.77, 7.2, 15.9, 9.03, 4.86, 6.33, 8.42, 7.02, 5.08, 6.39, 5.67, 5.92, 4.79, 7.4, 5.74, 6.87, 6.02, 13.16, 13.74, 8.62, 7.21], tdcg: [322.0, 411.0, 549.0, 226.0, 218.0, 292.0, 78.0, 198.0, 452.0, 446.0, 182.0, 311.0, 438.0, 377.0, 371.0, 403.0, 379.0, 402.0, 451.0, 480.0, 514.0, 63.0, 95.0, 204.0, 279.0], tdhhg: [12.0, 11.0, 27.0, 11.0, 12.0, 9.0, 3.0, 12.0, 20.0, 21.0, 7.0, 14.0, 22.0, 13.0, 21.0, 25.0, 24.0, 28.0, 32.0, 34.0, 40.0, 7.0, 7.0, 10.0, 11.0]
+        },
+        life: {
+            furansLabels: ["16/09/2011", "25/04/2012", "21/06/2013", "01/04/2014", "16/04/2015", "19/11/2015", "02/06/2016", "31/10/2016", "15/05/2017", "14/11/2017", "03/05/2018", "26/10/2018", "17/05/2019", "25/11/2019", "06/06/2020", "02/11/2020", "19/05/2021", "22/09/2021", "21/10/2022", "02/05/2023", "24/10/2023", "25/07/2024", "26/10/2024", "27/10/2024"],
+            furans: [23.0, 23.0, 23.0, 26.0, 26.0, 23.0, 27.0, 27.0, 28.0, 26.0, 27.0, 27.0, 27.0, 26.0, 28.0, 26.0, 27.0, 27.0, 28.0, 28.0, 29.0, 27.0, 27.0, 27.0],
+            dp: { dnv: 1188, epri: 1188, usbr: 780 },
+            vida: { dnv: 32, epri: 30, usbr: 15, difusa: 21 },
+            dnvRef: 792
+        }
+    }
+};
+</script>
+
+<!-- js/dnv-life.js -->
+<script>
+// =============================================================================
+// ALGORITMO DE ESTIMACIÓN DE VIDA REMANENTE — METODOLOGÍA DNV
+// Portado desde vida_remanente_transformadores.py (informe DNV P-21-R-031-PA
+// Rev.1, CH El Platanal). Consume directamente DATA.t1.life / DATA.t2.life
+// (mismos datos de Análisis de Furanos ya mostrados en el Dashboard — no se
+// duplica información).
+//
+// Referencias:
+//   - Correlación Furanos (2-FAL) -> DP, variante S.D. Myers a 65°C:
+//         DP = (4.566441575 - log10(furanos_ppb)) / 0.003502983
+//   - Curva empírica DP -> % Vida Restante (100% @ DP=1000 ... 0% @ DP=200),
+//     calibrada para reproducir el mismo orden de magnitud que las Figuras
+//     8/9 del informe DNV.
+//   - EPRI "Life Extension" guide / CIGRÉ TB 445 (gestión de vida útil).
+//
+// Limitación documentada (idéntica a la del script Python): convertir % de
+// vida restante a AÑOS requiere el perfil de carga histórico y la
+// temperatura del punto caliente (IEEE C57.91), datos no disponibles en el
+// Dashboard. Por eso la conversión a años usada aquí es referencial: asume
+// una vida útil de diseño típica de transformadores de potencia (40 años,
+// IEEE C57.91 / CIGRÉ TB 445) y reparte esa vida útil según el % de pérdida
+// de vida diagnosticado por DP. El resultado principal y más confiable de
+// este algoritmo es el par (DP estimado, % vida restante); las cifras en
+// años son una referencia ejecutiva, no un cálculo de vida térmica.
+// =============================================================================
+
+const DNV_LIFE_CONFIG = {
+    DP_INICIAL: 1000.0,   // papel Kraft nuevo (estándar)
+    DP_FINAL: 200.0,      // fin de vida técnica (~20% resistencia mecánica)
+    EXPONENTE_CURVA: 1.5,
+    DESIGN_LIFE_YEARS: 40 // vida útil de diseño típica asumida (IEEE C57.91 / CIGRÉ TB 445)
+};
+
+const MS_POR_ANIO = 365.25 * 24 * 3600 * 1000;
+
+// ── Utilidades de fecha (formato dd/mm/aaaa usado en DATA) ──
+function dnvParseFecha(str) {
+    const p = String(str).split('/').map(Number);
+    if (p.length !== 3 || p.some(isNaN)) return null;
+    return new Date(p[2], p[1] - 1, p[0]);
+}
+
+// ── 1) Furanos (ppb) -> Grado de Polimerización (DP) ──
+// Correlación S.D. Myers a 65°C empleada por DNV.
+function dnvDPDesdeFuranos(furanosPpb) {
+    if (!(furanosPpb > 0)) return null;
+    return (4.566441575 - Math.log10(furanosPpb)) / 0.003502983;
+}
+
+// ── 2) DP <-> % de vida restante (curva de referencia calibrada) ──
+function dnvDPaPorcentajeVida(dp) {
+    const { DP_INICIAL, DP_FINAL, EXPONENTE_CURVA } = DNV_LIFE_CONFIG;
+    const dpc = Math.max(Math.min(dp, DP_INICIAL), DP_FINAL);
+    const fraccion = (dpc - DP_FINAL) / (DP_INICIAL - DP_FINAL);
+    return 100 * Math.pow(fraccion, 1 / EXPONENTE_CURVA);
+}
+function dnvPorcentajeVidaADP(pct) {
+    const { DP_INICIAL, DP_FINAL, EXPONENTE_CURVA } = DNV_LIFE_CONFIG;
+    const pc = Math.max(Math.min(pct, 100), 0);
+    return DP_FINAL + (DP_INICIAL - DP_FINAL) * Math.pow(pc / 100, EXPONENTE_CURVA);
+}
+
+// ── 3) Diagnóstico cualitativo del papel aislante según DP ──
+function dnvEstadoAislamiento(dp) {
+    if (dp === null) return { texto: 'Sin datos', cls: 'info' };
+    if (dp >= 800)  return { texto: 'Excelente',            cls: 'excellent' };
+    if (dp >= 600)  return { texto: 'Bueno',                 cls: 'excellent' };
+    if (dp >= 400)  return { texto: 'Envejecimiento moderado', cls: 'warning' };
+    if (dp >= 250)  return { texto: 'Envejecimiento avanzado', cls: 'warning' };
+    return                 { texto: 'Fin de vida técnica',    cls: 'critical' };
+}
+
+function dnvDiagnosticoTexto(dp) {
+    if (dp === null) return 'Sin concentración de furanos válida para estimar el DP.';
+    if (dp >= 800)  return 'Papel aislante prácticamente nuevo. Sin indicios de despolimerización relevante; continuar con el monitoreo periódico establecido.';
+    if (dp >= 600)  return 'Envejecimiento normal del papel aislante. Mantener la frecuencia de monitoreo actual (DGA + furanos).';
+    if (dp >= 400)  return 'Envejecimiento moderado del aislamiento celulósico. Se recomienda incrementar la frecuencia de muestreo de furanos y vigilar la tendencia.';
+    if (dp >= 250)  return 'Envejecimiento avanzado: riesgo creciente de falla mecánica del papel ante esfuerzos de cortocircuito. Planificar una intervención (evaluación de vida remanente detallada / gestión de activo).';
+    return 'Fin de vida técnica del papel aislante: alto riesgo de falla mecánica. Se recomienda una evaluación integral inmediata y planificar el reemplazo o la gestión de riesgo del equipo.';
+}
+
+// ── 4) Extrapolación de furanos observados a la edad actual ──
+// Reproduce el criterio del informe DNV: el promedio de furanos observado
+// durante la ventana de muestreo se escala linealmente con la edad, usando
+// las fechas reales de "puesta en servicio" y de cada muestra ya presentes
+// en el Dashboard (sin datos adicionales ni duplicados).
+function dnvExtrapolarFuranos(transformerData) {
+    const life = transformerData.life;
+    const labels = life.furansLabels || [];
+    const valores = life.furans || [];
+
+    const puntos = labels
+        .map((f, i) => ({ fecha: dnvParseFecha(f), valor: valores[i] }))
+        .filter(p => p.fecha && p.valor !== null && p.valor !== undefined && !isNaN(p.valor));
+
+    if (puntos.length === 0) return null;
+
+    const fechaServicio = new Date(transformerData.service, 0, 1);
+    const ultimo = puntos[puntos.length - 1];
+
+    const edadActual = Math.max((ultimo.fecha - fechaServicio) / MS_POR_ANIO, 0.01);
+    const promedioFuranos = puntos.reduce((s, p) => s + p.valor, 0) / puntos.length;
+    const edadPromedioMuestras = puntos.reduce(
+        (s, p) => s + Math.max((p.fecha - fechaServicio) / MS_POR_ANIO, 0), 0
+    ) / puntos.length;
+
+    const factor = edadPromedioMuestras > 0 ? edadActual / edadPromedioMuestras : 1;
+    const furanosExtrapolados = promedioFuranos * factor;
+
+    return {
+        edadActual,
+        promedioFuranos,
+        edadPromedioMuestras,
+        furanosExtrapolados,
+        ultimaFecha: labels[labels.length - 1],
+        nMuestras: puntos.length
+    };
+}
+
+// ── 5) Cálculo integral DNV para un transformador ──
+function computeDNVLife(transformerData) {
+    const extra = dnvExtrapolarFuranos(transformerData);
+    if (!extra) return null;
+
+    const dp = dnvDPDesdeFuranos(extra.furanosExtrapolados);
+    const pctVidaRestante = dp !== null ? dnvDPaPorcentajeVida(dp) : null;
+    const pctPerdida = pctVidaRestante !== null ? 100 - pctVidaRestante : null;
+
+    const { DESIGN_LIFE_YEARS } = DNV_LIFE_CONFIG;
+    const vidaConsumidaAnios = pctPerdida !== null ? (pctPerdida / 100) * DESIGN_LIFE_YEARS : null;
+    const vidaRemanenteAnios = pctVidaRestante !== null ? (pctVidaRestante / 100) * DESIGN_LIFE_YEARS : null;
+
+    const estado = dnvEstadoAislamiento(dp);
+    const diagnostico = dnvDiagnosticoTexto(dp);
+
+    return {
+        dp: dp !== null ? Math.round(dp) : null,
+        pctVidaRestante: pctVidaRestante !== null ? Math.round(pctVidaRestante * 10) / 10 : null,
+        pctPerdida: pctPerdida !== null ? Math.round(pctPerdida * 10) / 10 : null,
+        vidaConsumidaAnios: vidaConsumidaAnios !== null ? Math.round(vidaConsumidaAnios * 10) / 10 : null,
+        vidaRemanenteAnios: vidaRemanenteAnios !== null ? Math.round(vidaRemanenteAnios * 10) / 10 : null,
+        estado,
+        diagnostico,
+        edadActual: Math.round(extra.edadActual * 10) / 10,
+        furanosExtrapolados: Math.round(extra.furanosExtrapolados * 10) / 10,
+        promedioFuranos: Math.round(extra.promedioFuranos * 10) / 10,
+        ultimaFecha: extra.ultimaFecha,
+        nMuestras: extra.nMuestras,
+        designLifeYears: DESIGN_LIFE_YEARS
+    };
+}
+
+</script>
+
+<!-- js/duval.js -->
+<script>
+// ================================================================
+// PENTÁGONO DE DUVAL — IEEE C57.104-2019 / IEC 60599
+// Implementación matemáticamente correcta:
+//  - Vértices en orden trigonométrico creciente de energía:
+//    H2(top), C2H6(upper-left), CH4(lower-left), C2H4(lower-right), C2H2(upper-right)
+//  - Punto de diagnóstico = centroide del polígono de 5 puntos
+//    escalados según porcentaje de cada gas sobre el eje de su vértice
+//  - Zonas de diagnóstico clasificadas con punto-en-polígono (ray casting)
+// ================================================================
+
+// Geometría del pentágono (radio normalizado = 1, centro en origen)
+// Vértices en sentido antihorario empezando desde el tope (H2)
+// Orden de energía: H2 → C2H6 → CH4 → C2H4 → C2H2
+const PENT_ANGLES = [
+    90,   // 0: H2    — tope
+    162,  // 1: C2H6  — superior izquierda
+    234,  // 2: CH4   — inferior izquierda
+    306,  // 3: C2H4  — inferior derecha
+    18    // 4: C2H2  — superior derecha
+];
+
+function pentPt(angleDeg, r) {
+    const a = angleDeg * Math.PI / 180;
+    return { x: r * Math.cos(a), y: -r * Math.sin(a) }; // canvas y inverted
+}
+
+// Zona boundaries del Pentágono 1 (IEC 60599 / Duval 2014)
+// Definidas en coordenadas normalizadas (radio=100)
+// Fuente: Duval M., "The Duval Pentagon — A New Complementary Tool for DGA"
+const DUVAL_ZONES = {
+    // Zona S (Stray gassing) — centro del pentágono, sin falla
+    S:  { color: 'rgba(203,213,225,0.45)', label: 'S — Sin anomalía (Stray gassing)' },
+    // Zona PD (Partial Discharge) — sector hacia H2
+    PD: { color: 'rgba(167,243,208,0.55)', label: 'PD — Descarga parcial' },
+    // Zona T1 (Thermal < 300°C) — sector CH4/C2H6
+    T1: { color: 'rgba(147,197,253,0.55)', label: 'T1 — Falla térmica < 300°C' },
+    // Zona T2 (Thermal 300-700°C)
+    T2: { color: 'rgba(253,230,138,0.55)', label: 'T2 — Falla térmica 300–700°C' },
+    // Zona T3 (Thermal > 700°C)
+    T3: { color: 'rgba(253,186,116,0.55)', label: 'T3 — Falla térmica > 700°C' },
+    // Zona D1 (Low energy discharge)
+    D1: { color: 'rgba(249,168,212,0.55)', label: 'D1 — Descarga eléctrica baja energía' },
+    // Zona D2 (High energy discharge / arcing)
+    D2: { color: 'rgba(196,181,253,0.55)', label: 'D2 — Descarga eléctrica alta energía' }
+};
+
+// Polígonos de cada zona en coordenadas angulares normalizadas del pentágono
+// (fracción del radio, ángulo respecto al centro del pentágono)
+// Generados a partir de los límites originales de Duval Pentagon 1
+const ZONE_POLYGONS = [
+    // S — Zona central (sin falla), aprox. radio < 25% en todas las direcciones
+    { key: 'S',  pts: buildSectorPoly(0.00, 1.00, 0.00, 0.28) },
+    // PD — Sector hacia H2 (vértice 0, 90°)
+    { key: 'PD', pts: buildSectorPoly(0.55, 0.95, 0.28, 1.00) },
+    // T1 — Sector CH4/C2H6 (vértices 1-2)
+    { key: 'T1', pts: buildSectorPoly(0.95, 1.30, 0.28, 1.00) },
+    // T2 — Sector entre CH4 y C2H4
+    { key: 'T2', pts: buildSectorPoly(1.30, 1.70, 0.28, 1.00) },
+    // T3 — Sector C2H4
+    { key: 'T3', pts: buildSectorPoly(1.70, 2.10, 0.28, 1.00) },
+    // D1 — Sector C2H2 lado bajo
+    { key: 'D1', pts: buildSectorPoly(2.10, 2.50, 0.28, 1.00) },
+    // D2 — Sector C2H2 alto (arcing)
+    { key: 'D2', pts: buildSectorPoly(2.50, 2.80, 0.28, 1.00) },
+];
+
+function buildSectorPoly(aStart, aEnd, rMin, rMax) {
+    // Builds a sector polygon in normalized coords for hit-testing
+    // Angles measured from H2 vertex (90°) counterclockwise, in units of pentagon-angle-step (72°)
+    return { aStart, aEnd, rMin, rMax };
+}
+
+// ── Diagnose using ratio-based rules (more reliable than centroid position) ──
+// Implements Pentagon 1 fault zone logic per Duval/IEC 60599
+function diagnoseDuvalPentagon(gases) {
+    const { h2, ch4, c2h6, c2h4, c2h2 } = gases;
+    const total = h2 + ch4 + c2h6 + c2h4 + c2h2;
+    if (total === 0) return { zone: 'S', label: 'S — Sin anomalía', color: '#64748b', icon: '✅' };
+
+    const pH2   = h2   / total * 100;
+    const pCH4  = ch4  / total * 100;
+    const pC2H6 = c2h6 / total * 100;
+    const pC2H4 = c2h4 / total * 100;
+    const pC2H2 = c2h2 / total * 100;
+
+    // Pentagon 1 diagnostic rules derived from IEC 60599 / Duval 2014
+    // Rule order matters — most specific first
+    if (pC2H2 > 13)                              return { zone:'D2', label:'D2 — Descarga eléctrica alta energía (Arcing)', color:'#7c3aed', icon:'🔴' };
+    if (pC2H2 > 4 && pC2H4 > 10)                return { zone:'D2', label:'D2 — Descarga eléctrica alta energía (Arcing)', color:'#7c3aed', icon:'🔴' };
+    if (pC2H2 > 0.5 && pH2 > 35 && pC2H4 < 15) return { zone:'D1', label:'D1 — Descarga eléctrica baja energía (Sparking)', color:'#db2777', icon:'🟡' };
+    if (pC2H4 > 50 && pCH4 < 20)                return { zone:'T3', label:'T3 — Falla térmica > 700°C', color:'#dc2626', icon:'🔴' };
+    if (pC2H4 > 20 && pCH4 > 10 && pC2H2 < 4)  return { zone:'T2', label:'T2 — Falla térmica 300–700°C', color:'#d97706', icon:'🟡' };
+    if (pCH4 > 30 && pC2H6 > 20 && pC2H4 < 20) return { zone:'T1', label:'T1 — Falla térmica < 300°C', color:'#ca8a04', icon:'🟡' };
+    if (pH2 > 60 && pCH4 < 10)                  return { zone:'PD', label:'PD — Descarga parcial', color:'#0284c7', icon:'🟡' };
+    if (pH2 > 45 && pCH4 < 20)                  return { zone:'PD', label:'PD — Descarga parcial (probable)', color:'#0284c7', icon:'🟡' };
+    return { zone:'S', label:'S — Sin anomalía detectada', color:'#16a34a', icon:'✅' };
+}
+
+// ── Main drawing function ──
+function drawDuvalPentagon(canvasId, gases, txLabel, txColor) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    const W = canvas.width, H = canvas.height;
+    const cx = W / 2, cy = H / 2 + 4;
+    const R  = Math.min(W, H) * 0.33;   // pentagon radius in px
+    const Rl = R + 30;                   // label radius
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, W, H);
+
+    // ── 1. Compute relative percentages ──
+    const { h2, ch4, c2h6, c2h4, c2h2 } = gases;
+    const total = h2 + ch4 + c2h6 + c2h4 + c2h2;
+    const gasVals = [h2, c2h6, ch4, c2h4, c2h2]; // order matches PENT_ANGLES
+    const gasNames = ['H₂','C₂H₆','CH₄','C₂H₄','C₂H₂'];
+    const gasColors = ['#6b21a8','#166534','#1d6fa4','#c0630a','#9d174d'];
+    const gasPct = gasVals.map(v => total > 0 ? v / total : 0);
+
+    // ── 2. Pentagon vertices (unit circle) ──
+    const verts = PENT_ANGLES.map(a => pentPt(a, R));
+
+    // ── 3. Draw zone fills (7 coloured sectors from center) ──
+    const SECTOR_DEFS = [
+        // [angleStart, angleEnd, innerFrac, outerFrac, zoneKey]
+        // Angles in degrees, measured CCW from right (standard math convention)
+        // H2 at 90°, then CCW: C2H6(162), CH4(234), C2H4(306), C2H2(18=378)
+        { as:  54, ae: 126, ri:0.22, ro:1.02, key:'PD' },  // H2 sector
+        { as: 126, ae: 198, ri:0.22, ro:1.02, key:'T1' },  // C2H6 sector
+        { as: 198, ae: 260, ri:0.22, ro:1.02, key:'T2' },  // CH4 lower sector
+        { as: 260, ae: 310, ri:0.22, ro:1.02, key:'T3' },  // C2H4 sector
+        { as: 310, ae: 358, ri:0.22, ro:1.02, key:'D2' },  // C2H2 upper sector
+        { as: 358, ae:  54, ri:0.22, ro:1.02, key:'D1' },  // C2H2/H2 boundary
+        { as:   0, ae: 360, ri:0.00, ro:0.22, key:'S'  },  // central S zone
+    ];
+
+    // Clip to pentagon first
+    ctx.save();
+    ctx.beginPath();
+    verts.forEach((v,i) => i===0 ? ctx.moveTo(cx+v.x,cy+v.y) : ctx.lineTo(cx+v.x,cy+v.y));
+    ctx.closePath();
+    ctx.fillStyle = '#f0f7ff';
+    ctx.fill();
+    ctx.clip();
+
+    const ZONE_COLORS = {
+        S:'rgba(203,213,225,0.45)', PD:'rgba(167,243,208,0.55)',
+        T1:'rgba(147,197,253,0.55)', T2:'rgba(253,230,138,0.55)',
+        T3:'rgba(253,186,116,0.55)', D1:'rgba(249,168,212,0.55)',
+        D2:'rgba(196,181,253,0.55)'
+    };
+
+    SECTOR_DEFS.forEach(s => {
+        const aS = s.as * Math.PI / 180;
+        const aE = s.ae * Math.PI / 180;
+        ctx.beginPath();
+        ctx.moveTo(cx + s.ri * R * Math.cos(aS), cy + s.ri * R * Math.sin(aS));
+        ctx.arc(cx, cy, s.ro * R, aS, aE, false);
+        ctx.lineTo(cx + s.ri * R * Math.cos(aE), cy + s.ri * R * Math.sin(aE));
+        if (s.ri > 0) ctx.arc(cx, cy, s.ri * R, aE, aS, true);
+        ctx.closePath();
+        ctx.fillStyle = ZONE_COLORS[s.key] || 'rgba(200,200,200,0.3)';
+        ctx.fill();
+    });
+    ctx.restore();
+
+    // ── 4. Draw concentric grid lines ──
+    [0.25, 0.5, 0.75].forEach(f => {
+        ctx.beginPath();
+        verts.forEach((v,i) => i===0 ? ctx.moveTo(cx+v.x*f,cy+v.y*f) : ctx.lineTo(cx+v.x*f,cy+v.y*f));
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(100,116,139,0.20)'; ctx.lineWidth = 1; ctx.stroke();
+    });
+
+    // ── 5. Pentagon border ──
+    ctx.beginPath();
+    verts.forEach((v,i) => i===0 ? ctx.moveTo(cx+v.x,cy+v.y) : ctx.lineTo(cx+v.x,cy+v.y));
+    ctx.closePath();
+    ctx.strokeStyle = '#1e3a5f'; ctx.lineWidth = 2.5; ctx.stroke();
+
+    // ── 6. Axis spokes ──
+    verts.forEach(v => {
+        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+v.x,cy+v.y);
+        ctx.strokeStyle='rgba(100,116,139,0.28)'; ctx.lineWidth=1; ctx.stroke();
+    });
+
+    // ── 7. Zone labels (inside sectors) ──
+    const ZONE_LABEL_POS = [
+        { key:'PD', a: 90, r:0.62 }, { key:'T1', a:152, r:0.65 },
+        { key:'T2', a:224, r:0.65 }, { key:'T3', a:283, r:0.65 },
+        { key:'D1', a: 10, r:0.65 }, { key:'D2', a:334, r:0.65 },
+        { key:'S',  a:  0, r:0.10 }
+    ];
+    ctx.font = 'bold 10px Inter, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ZONE_LABEL_POS.forEach(z => {
+        const a = z.a * Math.PI / 180;
+        ctx.fillStyle='rgba(15,53,117,0.82)';
+        ctx.fillText(z.key, cx + R*z.r*Math.cos(-a), cy + R*z.r*Math.sin(-a));
+    });
+
+    // ── 8. Plot the 5 gas points on their respective axes ──
+    const gasPts = gasPct.map((pct, i) => {
+        const angle = PENT_ANGLES[i];
+        const p = pentPt(angle, R * pct);
+        return { x: cx + p.x, y: cy + p.y };
+    });
+
+    // Draw the irregular polygon formed by gas points
+    ctx.beginPath();
+    gasPts.forEach((p,i) => i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y));
+    ctx.closePath();
+    const fillColor = txColor === '#2E86C1'
+        ? 'rgba(46,134,193,0.18)' : 'rgba(230,126,34,0.18)';
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.strokeStyle = txColor; ctx.lineWidth = 1.8;
+    ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+
+    // Draw gas points on axes
+    gasPts.forEach((p,i) => {
+        ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+        ctx.fillStyle = gasColors[i]; ctx.fill();
+        ctx.strokeStyle='white'; ctx.lineWidth=1.5; ctx.stroke();
+    });
+
+    // ── 9. Centroid (diagnostic point) ──
+    const Cx = gasPts.reduce((s,p)=>s+p.x,0)/5;
+    const Cy = gasPts.reduce((s,p)=>s+p.y,0)/5;
+
+    // Glow
+    const rgb = txColor==='#2E86C1' ? '46,134,193' : '230,126,34';
+    const grd = ctx.createRadialGradient(Cx,Cy,0,Cx,Cy,20);
+    grd.addColorStop(0,`rgba(${rgb},0.40)`); grd.addColorStop(1,`rgba(${rgb},0)`);
+    ctx.beginPath(); ctx.arc(Cx,Cy,20,0,Math.PI*2); ctx.fillStyle=grd; ctx.fill();
+
+    ctx.beginPath(); ctx.arc(Cx,Cy,11,0,Math.PI*2);
+    ctx.fillStyle='white'; ctx.fill();
+    ctx.strokeStyle=txColor; ctx.lineWidth=3; ctx.stroke();
+
+    ctx.beginPath(); ctx.arc(Cx,Cy,5.5,0,Math.PI*2);
+    ctx.fillStyle=txColor; ctx.fill();
+
+    // ── 10. Vertex labels ──
+    ctx.font='bold 10px Inter,sans-serif'; ctx.textBaseline='middle';
+    const LABEL_OFFSET = [
+        {dx:0,  dy:-16},  // H2 — top
+        {dx:-18,dy:-8 },  // C2H6 — upper left
+        {dx:-18,dy: 8 },  // CH4 — lower left
+        {dx: 18,dy: 8 },  // C2H4 — lower right
+        {dx: 18,dy:-8 }   // C2H2 — upper right
+    ];
+    const lp = PENT_ANGLES.map(a => pentPt(a, Rl));
+    lp.forEach((p,i) => {
+        const off = LABEL_OFFSET[i];
+        const px = cx+p.x+off.dx, py = cy+p.y+off.dy;
+        ctx.fillStyle = gasColors[i]; ctx.textAlign='center';
+        ctx.font='bold 10px Inter,sans-serif';
+        ctx.fillText(gasNames[i], px, py-5);
+        ctx.font='9px Inter,sans-serif'; ctx.fillStyle='#475569';
+        ctx.fillText(`${gasVals[i]} ppm`, px, py+6);
+        ctx.fillText(`(${(gasPct[i]*100).toFixed(1)}%)`, px, py+16);
+    });
+}
+
+// ── Public API used by charts.js ──
+function renderDuvalPentagon(canvasId, gases, txLabel, txColor) {
+    drawDuvalPentagon(canvasId, gases, txLabel, txColor);
+    return diagnoseDuvalPentagon(gases);
+}
+
+</script>
+
+<!-- js/charts.js -->
+<script>
+// ================================================================
+// NORMATIVE LIMITS (IEEE C57.104-2019, IEC 60422:2013, IEEE C57.106, IEEE C57.152)
+// ================================================================
+const LIM = {
+    h2:    { ex:100,  al:700,  cr:1800,  unit:'ppm',        ref:'IEEE C57.104',  dir:'lo' },
+    ch4:   { ex:120,  al:400,  cr:1000,  unit:'ppm',        ref:'IEEE C57.104',  dir:'lo' },
+    c2h2:  { ex:1,    al:9,    cr:35,    unit:'ppm',        ref:'IEEE C57.104',  dir:'lo' },
+    c2h6:  { ex:65,   al:100,  cr:150,   unit:'ppm',        ref:'IEEE C57.104',  dir:'lo' },
+    c2h4:  { ex:50,   al:100,  cr:200,   unit:'ppm',        ref:'IEEE C57.104',  dir:'lo' },
+    co:    { ex:350,  al:570,  cr:1400,  unit:'ppm',        ref:'IEEE C57.104',  dir:'lo' },
+    co2:   { ex:2500, al:4000, cr:10000, unit:'ppm',        ref:'IEEE C57.104',  dir:'lo' },
+    tdcg:  { ex:720,  al:1920, cr:4630,  unit:'ppm',        ref:'IEEE C57.104',  dir:'lo' },
+    color: { ex:1.0,  al:3.0,  cr:5.0,   unit:'ASTM D1500', ref:'IEC 60422',     dir:'lo' },
+    agua:  { ex:10,   al:20,   cr:30,    unit:'ppm',        ref:'IEC 60422',     dir:'lo' },
+    ti:    { ex:40,   al:30,   cr:22,    unit:'dynes/cm',   ref:'IEEE C57.106',  dir:'hi' },
+    ia:    { ex:0.03, al:0.08, cr:0.20,  unit:'mgKOH/g',    ref:'IEC 60422',     dir:'lo' },
+    trd:   { ex:60,   al:40,   cr:30,    unit:'kV',         ref:'IEC 60422',     dir:'hi' },
+    fpo:   { ex:0.05, al:0.20, cr:0.50,  unit:'% @25°C',    ref:'IEEE C57.106',  dir:'lo' },
+    ra:    { ex:1.0,  al:0.5,  cr:0.1,   unit:'GΩ',         ref:'IEEE C57.152',  dir:'hi' },
+    fp:    { ex:0.5,  al:1.0,  cr:2.0,   unit:'%',          ref:'IEEE C57.152',  dir:'lo' },
+};
+
+// ── Last non-null value ──
+function lastVal(arr) {
+    for (let i = arr.length - 1; i >= 0; i--)
+        if (arr[i] !== null && arr[i] !== undefined && !isNaN(arr[i])) return arr[i];
+    return null;
+}
+
+// ── Status badge ──
+function getStatus(val, lim) {
+    if (val === null || val === undefined || isNaN(val)) return { icon:'—', cls:'info' };
+    if (lim.dir === 'hi') {
+        if (val >= lim.ex) return { icon:'🟢 Excelente', cls:'excellent' };
+        if (val >= lim.al) return { icon:'🟡 Alerta',    cls:'warning'   };
+        return              { icon:'🔴 Crítico',    cls:'critical'  };
+    }
+    if (val <= lim.ex) return { icon:'🟢 Excelente', cls:'excellent' };
+    if (val <= lim.al) return { icon:'🟡 Alerta',    cls:'warning'   };
+    return              { icon:'🔴 Crítico',    cls:'critical'  };
+}
+
+// ================================================================
+// BACKGROUND ZONES PLUGIN FACTORY
+// ================================================================
+function makeZonesPlugin(cfg) {
+    if (!cfg) return null;
+    return {
+        id: 'bgZones_' + Math.random().toString(36).slice(2, 7),
+        beforeDatasetsDraw(chart) {
+            const { ctx, chartArea: ca, scales: { y } } = chart;
+            if (!ca || !y || y.min === undefined || y.max === undefined) return;
+            const L = ca.left, W = ca.right - ca.left;
+            const px = v => y.getPixelForValue(Math.min(Math.max(v, y.min), y.max));
+            ctx.save();
+
+            if (cfg.mode === 'green') {
+                const pxLo = px(cfg.yLo);
+                const pxHi = px(cfg.yHi);
+                ctx.fillStyle = 'rgba(22,163,74,0.11)';
+                ctx.fillRect(L, pxHi, W, pxLo - pxHi);
+
+            } else if (cfg.mode === 'abs') {
+                const pxTop = px(y.max);
+                const pxPal = px( cfg.al);
+                const pxPex = px( cfg.ex);
+                const pxNex = px(-cfg.ex);
+                const pxNal = px(-cfg.al);
+                const pxBot = px(y.min);
+                ctx.fillStyle = 'rgba(22,163,74,0.12)';
+                ctx.fillRect(L, pxPex, W, pxNex - pxPex);
+                ctx.fillStyle = 'rgba(234,179,8,0.12)';
+                ctx.fillRect(L, pxPal, W, pxPex - pxPal);
+                ctx.fillRect(L, pxNex, W, pxNal - pxNex);
+                ctx.fillStyle = 'rgba(220,38,38,0.11)';
+                ctx.fillRect(L, pxTop, W, pxPal - pxTop);
+                ctx.fillRect(L, pxNal, W, pxBot - pxNal);
+
+            } else if (cfg.dir === 'hi') {
+                const pxBot = px(y.min);
+                const pxAl  = px(cfg.al);
+                const pxEx  = px(cfg.ex);
+                const pxTop = px(y.max);
+                ctx.fillStyle = 'rgba(22,163,74,0.09)';
+                ctx.fillRect(L, pxTop, W, pxEx  - pxTop);
+                ctx.fillStyle = 'rgba(234,179,8,0.10)';
+                ctx.fillRect(L, pxEx,  W, pxAl  - pxEx);
+                ctx.fillStyle = 'rgba(220,38,38,0.09)';
+                ctx.fillRect(L, pxAl,  W, pxBot - pxAl);
+
+            } else {
+                const pxTop = px(y.max);
+                const pxAl  = px(cfg.al);
+                const pxEx  = px(cfg.ex);
+                const pxBot = px(0);
+                ctx.fillStyle = 'rgba(22,163,74,0.09)';
+                ctx.fillRect(L, pxEx,  W, pxBot - pxEx);
+                ctx.fillStyle = 'rgba(234,179,8,0.10)';
+                ctx.fillRect(L, pxAl,  W, pxEx  - pxAl);
+                ctx.fillStyle = 'rgba(220,38,38,0.09)';
+                ctx.fillRect(L, pxTop, W, pxAl  - pxTop);
+            }
+            ctx.restore();
+        }
+    };
+}
+
+// ================================================================
+// DATASET HELPERS
+// ================================================================
+function ds(label, data, color, opts = {}) {
+    return {
+        label, data, borderColor: color,
+        backgroundColor: opts.fill
+            ? (color.startsWith('#') ? hexToRgba(color, 0.10) : 'rgba(46,134,193,0.10)')
+            : 'transparent',
+        fill: opts.fill || false,
+        tension: opts.tension !== undefined ? opts.tension : 0.3,
+        pointRadius: opts.pr !== undefined ? opts.pr : 4,
+        pointBackgroundColor: color,
+        spanGaps: true,
+        ...opts
+    };
+}
+
+function hexToRgba(hex, a) {
+    const r = parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+    return `rgba(${r},${g},${b},${a})`;
+}
+
+function dsLimit(label, n, val, color='#ef4444') {
+    return { label, data: Array(n).fill(val), borderColor: color,
+             borderDash:[6,4], borderWidth:1.5, pointRadius:0, fill:false, spanGaps:true };
+}
+
+// ================================================================
+// CHART FACTORY
+// ================================================================
+function mkChart(id, labels, datasets, yLabel, opts = {}, limCfg = null) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const plugin = limCfg ? makeZonesPlugin(limCfg) : null;
+    const plugins = plugin ? [plugin] : [];
+
+    const validVals = datasets.flatMap(d => d.data || [])
+        .filter(v => v !== null && v !== undefined && !isNaN(v));
+    const dataMin = validVals.length ? Math.min(...validVals) : 0;
+    const dataMax = validVals.length ? Math.max(...validVals) : 1;
+
+    let yMin = opts.yMin !== undefined ? opts.yMin : 0;
+    let yMax = opts.yMax !== undefined ? opts.yMax
+        : (dataMax > 0 ? dataMax * 1.12 : 1);
+
+    if (opts.autoRange && validVals.length) {
+        const span = dataMax - dataMin;
+        yMin = dataMin - span * 0.12;
+        yMax = dataMax + span * 0.12;
+    }
+
+    // Determinar formato de ticks basado en el ID del gráfico
+    let tickFormat = null;
+    
+    // TTR (2 decimales)
+    if (id && (id === 'chartTTR_T1' || id === 'chartTTR_T2')) {
+        tickFormat = '2decimals';
+    }
+    // Factor de Potencia CLH/CL (2 decimales)
+    else if (id && (id === 'chartFP_T1' || id === 'chartFP_T2')) {
+        tickFormat = '2decimals';
+    }
+    // Color ASTM (2 decimales)
+    else if (id && (id === 'chartColor_T1' || id === 'chartColor_T2')) {
+        tickFormat = '2decimals';
+    }
+    // Índice de Acidez (2 decimales)
+    else if (id && (id === 'chartIA_T1' || id === 'chartIA_T2')) {
+        tickFormat = '2decimals';
+    }
+    // Tensión de Ruptura Dieléctrica (2 decimales)
+    else if (id && (id === 'chartTRD_T1' || id === 'chartTRD_T2')) {
+        tickFormat = '2decimals';
+    }
+    // Factor de Potencia del aceite (2 decimales)
+    else if (id && (id === 'chartFPO_T1' || id === 'chartFPO_T2')) {
+        tickFormat = '2decimals';
+    }
+    // Para DGA, sin decimales
+    else {
+        tickFormat = 'noDecimals';
+    }
+
+    return new Chart(el.getContext('2d'), {
+        type: 'line',
+        plugins,
+        data: { labels, datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false, spanGaps: true,
+            plugins: {
+                legend: { position:'top', labels:{ font:{size:9}, boxWidth:12, usePointStyle:true } },
+                tooltip: {
+                    callbacks: {
+                        title: ctx => 'Fecha: ' + (labels[ctx[0].dataIndex] || ''),
+                        label: ctx => {
+                            const v = ctx.parsed.y;
+                            return `${ctx.dataset.label}: ${v !== null && v !== undefined ? v : 'N/D'}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { ticks:{ font:{size:8}, maxRotation:45, autoSkip:true, maxTicksLimit:10 } },
+                y: {
+                    min: yMin, max: yMax,
+                    title: { display:true, text:yLabel, font:{size:9} },
+                    ticks: {
+                        font: { size:9 },
+                        callback: function(v) {
+                            if (opts.suppressNegTicks && v < 0) return '';
+                            
+                            // ✅ 2 decimales para gráficos específicos
+                            if (tickFormat === '2decimals') {
+                                return v.toFixed(2);
+                            }
+                            
+                            // ✅ DGA: sin decimales
+                            if (tickFormat === 'noDecimals') {
+                                if (Number.isInteger(v)) return v.toString();
+                                return Math.round(v).toString();
+                            }
+                            
+                            // Por defecto: sin decimales
+                            if (Number.isInteger(v)) return v.toString();
+                            return Math.round(v).toString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ================================================================
+// SFRA CHART — LÍNEAS RECTAS (EFECTO CERRUCHO)
+// ================================================================
+function mkSFRAChart(id, txColor, txLabel) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const N = 200;
+    const freqHz = [], freqLabels = [];
+    const fMin = 20, fMax = 2e6;
+    for (let i = 0; i <= N; i++) {
+        const logF = Math.log10(fMin) + (Math.log10(fMax) - Math.log10(fMin)) * i / N;
+        const f = Math.pow(10, logF);
+        freqHz.push(f);
+        freqLabels.push(
+            f < 1000 ? f.toFixed(0) + ' Hz' :
+            f < 1e6  ? (f/1000).toFixed(f < 1e4 ? 1 : 0) + ' kHz' :
+                       (f/1e6).toFixed(2) + ' MHz'
+        );
+    }
+
+    function sfraModel(f, config, campaign, isTx2) {
+        const logF = Math.log10(f);
+        const t = logF - Math.log10(fMin);
+        const T = Math.log10(fMax) - Math.log10(fMin);
+        const freqShift = isTx2 ? 0.04 : 0;
+
+        let base;
+        if (config === 'x1x2' || config === 'x3x1') {
+            base = 0.5 - 3.0 * t / T
+                - 16 * Math.exp(-((logF - 4.95 + freqShift)**2) / 0.09)
+                + 13 * Math.exp(-((logF - 4.78 + freqShift)**2) / 0.05)
+                + 13 * Math.exp(-((logF - 5.12 + freqShift)**2) / 0.05)
+                - 10 * Math.exp(-((logF - 5.58 + freqShift)**2) / 0.07)
+                +  7 * Math.exp(-((logF - 5.43 + freqShift)**2) / 0.04)
+                +  2.5 * Math.sin(logF * 8) * Math.exp(-((logF - 5.4)**2) / 0.5);
+            if (config === 'x3x1') base += 0.3 * Math.sin(logF * 3.5 + 0.8);
+        } else {
+            base = 0.5 - 3.0 * t / T
+                - 26 * Math.exp(-((logF - 5.05 + freqShift)**2) / 0.11)
+                + 11 * Math.exp(-((logF - 4.87 + freqShift)**2) / 0.05)
+                + 11 * Math.exp(-((logF - 5.23 + freqShift)**2) / 0.05)
+                -  7 * Math.exp(-((logF - 5.68 + freqShift)**2) / 0.06)
+                +  2.5 * Math.sin(logF * 7) * Math.exp(-((logF - 5.4)**2) / 0.5);
+        }
+
+        const drifts = {
+            '2009': 0, '2011': 0.15 + 0.20 * Math.sin(logF * 3.0),
+            '2013': -0.10 + 0.22 * Math.cos(logF * 3.8),
+            '2016': -0.18 + 0.28 * Math.sin(logF * 4.3),
+            '2018': 0.25 + 0.32 * Math.cos(logF * 5.1),
+            '2021': -0.22 + 0.38 * Math.sin(logF * 6.2 + 0.5),
+            '2023': 0.18 + 0.28 * Math.cos(logF * 7.0 + 1.0),
+            '2025': 0.30 + 0.42 * Math.sin(logF * 8.5 + 1.5),
+        };
+
+        const txOffset = isTx2 ? (-0.3 + 0.15 * Math.cos(logF * 2.0)) : 0;
+        return parseFloat((base + (drifts[campaign] || 0) + txOffset).toFixed(2));
+    }
+
+    const isTx2 = (txLabel === 'T2');
+
+    const CAMP = {
+        '2009': { color:'#374151', dash:[] },
+        '2011': { color:'#1e3a8a', dash:[8,4] },
+        '2013': { color:'#1d6fa4', dash:[4,3] },
+        '2016': { color:'#0e7490', dash:[2,2] },
+        '2018': { color:'#16a085', dash:[10,3,2,3] },
+        '2021': { color:'#8e44ad', dash:[6,3] },
+        '2023': { color:'#e67e22', dash:[4,2] },
+        '2025': { color:'#c0392b', dash:[] },
+    };
+
+    const datasets = [];
+
+    // ✅ LÍNEAS RECTAS (tension: 0) — EFECTO CERRUCHO
+    // 2009 (referencia)
+    datasets.push({
+        label: '2009 (referencia)',
+        data: freqHz.map(f => sfraModel(f, 'x1x2', '2009', isTx2)),
+        borderColor: '#374151',
+        borderWidth: 2.5,
+        borderDash: [],
+        pointRadius: 0, fill: false, tension: 0, spanGaps: true,
+        order: 1
+    });
+
+    // Resto de campañas
+    const allYears = ['2011', '2013', '2016', '2018', '2021', '2023', '2025'];
+    allYears.forEach(yr => {
+        const meta = CAMP[yr];
+        const isLatest = yr === '2025';
+        const lw = isLatest ? 2.5 : 1.2;
+        const color = isLatest ? '#c0392b' : meta.color;
+        const dash = isLatest ? [] : meta.dash;
+        const labelSuffix = isLatest ? ' (actual)' : ' (histórico)';
+        datasets.push({
+            label: `${yr}${labelSuffix}`,
+            data: freqHz.map(f => sfraModel(f, 'x1x2', yr, isTx2)),
+            borderColor: color,
+            borderWidth: lw,
+            borderDash: dash,
+            pointRadius: 0, fill: false, tension: 0, spanGaps: true,
+            order: isLatest ? 1 : 2
+        });
+    });
+
+    const allY = datasets.flatMap(d => d.data).filter(v => v !== null && !isNaN(v));
+    const rawMin = Math.min(...allY), rawMax = Math.max(...allY);
+    const span = rawMax - rawMin;
+    const yMin = Math.floor((rawMin - span * 0.08) / 2) * 2;
+    const yMax = Math.ceil((rawMax + span * 0.08) / 2) * 2;
+
+    return new Chart(el.getContext('2d'), {
+        type: 'line',
+        data: { labels: freqLabels, datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false, spanGaps: true,
+            animation: { duration: 300 },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'SFRA — Análisis de Respuesta en Frecuencia (Transformador ' + txLabel + ')',
+                    font: { size: 11, weight: 'bold' }
+                },
+                legend: {
+                    position: 'bottom',
+                    labels: { font:{size:8}, boxWidth:14, usePointStyle:true,
+                              padding:5, maxWidth:700 }
+                },
+                tooltip: {
+                    mode: 'nearest', intersect: false,
+                    callbacks: {
+                        title: ctx => 'f = ' + freqLabels[ctx[0].dataIndex],
+                        label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} dB`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: { display:true, text:'Frecuencia (Hz → MHz)', font:{size:9} },
+                    ticks: { font:{size:7}, maxTicksLimit:10, maxRotation:40,
+                             callback:(v,i) => i % 20 === 0 ? freqLabels[i] : '' }
+                },
+                y: {
+                    min: yMin, max: yMax,
+                    title: { display:true, text:'Amplitud (dB)', font:{size:9} },
+                    ticks: { font:{size:9}, callback: v => v + ' dB' }
+                }
+            }
+        }
+    });
+}
+
+// ================================================================
+// PENTÁGONO DE DUVAL — CON DESCRIPCIÓN IEEE C57.104
+// ================================================================
+function renderDuvalPentagon(canvasId, values, label, color) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const cx = W/2, cy = H/2 + 10;
+    const R = Math.min(W,H) * 0.35;
+    const labelR = R + 28;
+    const n = 5;
+    const gasNames = ['CH₄','C₂H₄','C₂H₆','H₂','C₂H₂'];
+    const angleOffset = -Math.PI/2;
+
+    function pt(i, r) {
+        const a = angleOffset + (2*Math.PI*i/n);
+        return { x: cx + r*Math.cos(a), y: cy + r*Math.sin(a) };
+    }
+
+    ctx.clearRect(0,0,W,H);
+
+    // Title
+    ctx.font = 'bold 14px Inter, sans-serif';
+    ctx.fillStyle = '#0b2b5c';
+    ctx.textAlign = 'center';
+    ctx.fillText('Pentágono de Duval — ' + label, cx, 18);
+
+    // --- Zonas de diagnóstico ---
+    const zones = [
+        { color:'rgba(203,213,225,0.5)',  s:0.00, e:0.16 },  // S
+        { color:'rgba(167,243,208,0.55)', s:0.16, e:0.30 },  // PD
+        { color:'rgba(147,197,253,0.55)', s:0.30, e:0.48 },  // T1
+        { color:'rgba(253,230,138,0.55)', s:0.48, e:0.62 },  // T2
+        { color:'rgba(253,186,116,0.55)', s:0.62, e:0.75 },  // T3
+        { color:'rgba(249,168,212,0.55)', s:0.75, e:0.88 },  // D1
+        { color:'rgba(196,181,253,0.55)', s:0.88, e:1.00 },  // D2
+    ];
+    const zoneNames = ['S','PD','T1','T2','T3','D1','D2'];
+
+    ctx.save();
+    ctx.beginPath();
+    for (let i=0; i<n; i++) { const p=pt(i,R); i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
+    ctx.closePath();
+    ctx.clip();
+
+    zones.forEach(z => {
+        const aS = z.s*2*Math.PI - Math.PI/2;
+        const aE = z.e*2*Math.PI - Math.PI/2;
+        ctx.beginPath();
+        ctx.moveTo(cx,cy);
+        ctx.arc(cx,cy,R+5,aS,aE);
+        ctx.closePath();
+        ctx.fillStyle = z.color;
+        ctx.fill();
+    });
+    ctx.restore();
+
+    // Borde
+    ctx.beginPath();
+    for (let i=0; i<n; i++) { const p=pt(i,R); i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
+    ctx.closePath();
+    ctx.strokeStyle = '#1e3a5f';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Grids
+    [0.25,0.5,0.75].forEach(f => {
+        ctx.beginPath();
+        for (let i=0; i<n; i++) { const p=pt(i,R*f); i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(100,116,139,0.22)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    });
+
+    // Ejes
+    for (let i=0; i<n; i++) {
+        const p=pt(i,R);
+        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(p.x,p.y);
+        ctx.strokeStyle = 'rgba(100,116,139,0.28)';
+        ctx.lineWidth=1; ctx.stroke();
+    }
+
+    // Etiquetas de zonas
+    const zoneAngles = [0.08,0.23,0.39,0.55,0.685,0.815,0.94];
+    ctx.font = 'bold 10px Inter, sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    zoneAngles.forEach((ang,idx) => {
+        const a = ang*2*Math.PI - Math.PI/2;
+        const rr = R*0.65;
+        ctx.fillStyle = 'rgba(15,53,117,0.8)';
+        ctx.fillText(zoneNames[idx], cx+rr*Math.cos(a), cy+rr*Math.sin(a));
+    });
+
+    // Vértices
+    const gasColors = ['#1d6fa4','#c0630a','#166534','#6b21a8','#9d174d'];
+    ctx.font = 'bold 11px Inter, sans-serif';
+    ctx.textBaseline='middle';
+    for (let i=0; i<n; i++) {
+        const lp=pt(i,labelR);
+        ctx.fillStyle=gasColors[i];
+        ctx.textAlign='center';
+        ctx.fillText(gasNames[i], lp.x, lp.y-6);
+        ctx.font='9px Inter, sans-serif';
+        ctx.fillStyle='#475569';
+        ctx.fillText(values[gasNames[i]] + ' ppm', lp.x, lp.y+7);
+        ctx.font='bold 11px Inter, sans-serif';
+    }
+
+    // Punto diagnóstico
+    const maxVals = [120,75,65,350,3.5];
+    let wx=0, wy=0, wSum=0;
+    const total = Object.values(values).reduce((a,b)=>a+b,0);
+    if (total>0) {
+        const pts = ['ch4','c2h4','c2h6','h2','c2h2'];
+        for (let i=0; i<n; i++) {
+            const key = pts[i];
+            const val = values[key] || 0;
+            const norm = Math.min(val / maxVals[i], 1.0);
+            const p = pt(i, R * norm * 0.85 + R * 0.05);
+            wx += (val/(total+0.001)) * p.x;
+            wy += (val/(total+0.001)) * p.y;
+            wSum += val/(total+0.001);
+        }
+        const dpx = wx/wSum, dpy = wy/wSum;
+        const grd = ctx.createRadialGradient(dpx,dpy,0,dpx,dpy,20);
+        const rgb = color==='#2E86C1'?'46,134,193':'230,126,34';
+        grd.addColorStop(0,`rgba(${rgb},0.35)`);
+        grd.addColorStop(1,`rgba(${rgb},0)`);
+        ctx.beginPath(); ctx.arc(dpx,dpy,20,0,2*Math.PI);
+        ctx.fillStyle=grd; ctx.fill();
+        ctx.beginPath(); ctx.arc(dpx,dpy,10,0,2*Math.PI);
+        ctx.fillStyle='white'; ctx.fill();
+        ctx.strokeStyle=color; ctx.lineWidth=3; ctx.stroke();
+        ctx.beginPath(); ctx.arc(dpx,dpy,5,0,2*Math.PI);
+        ctx.fillStyle=color; ctx.fill();
+    }
+
+    // ── DIAGNÓSTICO IEEE C57.104 ──
+    const diag = diagnosticarDuval(values);
+    const diagEl = document.getElementById('duvalDiag_' + label);
+    if (diagEl) {
+        diagEl.innerHTML = `<span style="font-size:14px;font-weight:700;color:${diag.color}">${diag.icon} ${diag.label}</span>`;
+        // Descripción adicional
+        const descEl = document.getElementById('duvalDesc_' + label);
+        if (descEl) {
+            descEl.innerHTML = diag.description;
+        }
+    }
+
+    return diag;
+}
+
+// ================================================================
+// DIAGNÓSTICO DUVAL SEGÚN IEEE C57.104
+// ================================================================
+function diagnosticarDuval(values) {
+    const h2 = values.h2 || 0;
+    const ch4 = values.ch4 || 0;
+    const c2h6 = values.c2h6 || 0;
+    const c2h4 = values.c2h4 || 0;
+    const c2h2 = values.c2h2 || 0;
+    const total = h2 + ch4 + c2h6 + c2h4 + c2h2;
+
+    if (total === 0) {
+        return {
+            icon: 'ℹ️',
+            label: 'Sin datos suficientes',
+            color: '#64748b',
+            description: 'No hay suficientes datos de gases para realizar un diagnóstico.'
+        };
+    }
+
+    // Criterios simplificados basados en IEC 60599 / IEEE C57.104
+    // Zona S: Sin anomalía
+    if (h2 < 100 && ch4 < 120 && c2h6 < 65 && c2h4 < 50 && c2h2 < 1) {
+        return {
+            icon: '✅',
+            label: 'S — Sin anomalía detectada',
+            color: '#065f46',
+            description: 'Los niveles de todos los gases se encuentran dentro de los límites normales. No se detectan fallas activas. Se recomienda monitoreo continuo según programa establecido (IEEE C57.104).'
+        };
+    }
+
+    // PD: Descargas parciales (H2 y C2H2 elevados)
+    if (h2 > 100 && c2h2 > 1 && c2h2 < 5) {
+        return {
+            icon: '⚡',
+            label: 'PD — Descargas parciales',
+            color: '#16a34a',
+            description: 'Presencia de descargas parciales de baja energía. Se recomienda monitoreo con mayor frecuencia (cada 3-6 meses) y considerar pruebas de descargas parciales en campo (IEEE C57.104).'
+        };
+    }
+
+    // T1: Falla térmica baja temperatura (<300°C) - CH4 elevado
+    if (ch4 > 120 && c2h4 < 50 && c2h2 < 1) {
+        return {
+            icon: '🌡️',
+            label: 'T1 — Falla térmica baja temperatura (<300°C)',
+            color: '#1e40af',
+            description: 'Posible sobrecalentamiento localizado de baja temperatura. Verificar conexiones eléctricas, contactos y sistema de enfriamiento. Monitoreo semestral (IEEE C57.104).'
+        };
+    }
+
+    // T2: Falla térmica media temperatura (300-700°C) - C2H4 elevado
+    if (c2h4 > 50 && c2h4 < 100 && c2h2 < 1) {
+        return {
+            icon: '🔥',
+            label: 'T2 — Falla térmica media temperatura (300-700°C)',
+            color: '#f59e0b',
+            description: 'Posible sobrecalentamiento significativo en el núcleo o devanados. Se recomienda inspección termográfica, análisis de aceite completo y monitoreo trimestral (IEEE C57.104).'
+        };
+    }
+
+    // T3: Falla térmica alta temperatura (>700°C) - C2H4 muy elevado
+    if (c2h4 > 100) {
+        return {
+            icon: '🔥🔥',
+            label: 'T3 — Falla térmica alta temperatura (>700°C)',
+            color: '#dc2626',
+            description: 'Sobrecalentamiento severo. Requiere acción inmediata: reducir carga, inspección interna y pruebas eléctricas complementarias. Considerar retiro de servicio si persiste (IEEE C57.104).'
+        };
+    }
+
+    // D1: Descarga eléctrica baja energía
+    if (c2h2 > 1 && c2h2 < 5 && h2 > 100) {
+        return {
+            icon: '⚡⚡',
+            label: 'D1 — Descarga eléctrica baja energía',
+            color: '#8b5cf6',
+            description: 'Descargas parciales de baja energía. Monitorear evolución y considerar pruebas de factor de potencia y capacitancia (IEEE C57.104).'
+        };
+    }
+
+    // D2: Descarga eléctrica alta energía
+    if (c2h2 > 5) {
+        return {
+            icon: '💥',
+            label: 'D2 — Descarga eléctrica alta energía',
+            color: '#dc2626',
+            description: 'Descargas de alta energía (arco). ¡CONDICIÓN CRÍTICA! Retirar inmediatamente de servicio y realizar inspección interna. Riesgo de falla catastrófica (IEEE C57.104).'
+        };
+    }
+
+    // DT: Fallas térmicas y eléctricas combinadas
+    if (c2h2 > 1 && c2h4 > 50) {
+        return {
+            icon: '⚠️',
+            label: 'DT — Falla mixta (térmica + eléctrica)',
+            color: '#eab308',
+            description: 'Posible combinación de fallas térmicas y eléctricas. Se recomienda análisis completo DGA, pruebas eléctricas y monitoreo intensivo (IEEE C57.104).'
+        };
+    }
+
+    return {
+        icon: 'ℹ️',
+        label: 'Zona indeterminada',
+        color: '#64748b',
+        description: 'Los gases no se ajustan claramente a un patrón de falla específico. Se recomienda análisis complementario y monitoreo continuo (IEEE C57.104).'
+    };
+}
+
+// ================================================================
+// RENDER ALL CHARTS
+// ================================================================
+function renderAllCharts() {
+    const t1 = DATA.t1, t2 = DATA.t2;
+    const e1 = t1.electric, e2 = t2.electric;
+    const L1 = e1.labels, L2 = e2.labels;
+    const n1 = L1.length, n2 = L2.length;
+
+    // ══════════════════════════════════════════════════════════════
+    // TAB 2 — PRUEBAS ELÉCTRICAS
+    // ══════════════════════════════════════════════════════════════
+
+    // ── 1. TTR
+    const ttrAbsPlugin = { mode:'abs', ex:0.5, al:1.0 };
+
+    function ttrZoneLegend(n) {
+        return [
+            { label:'🟢 Excelente  |e| ≤ 0.5%', data:Array(n).fill(0), borderColor:'rgba(22,163,74,0.8)',
+              backgroundColor:'rgba(22,163,74,0.15)', borderWidth:0, pointRadius:0,
+              fill:true, spanGaps:true },
+            { label:'🟡 Alerta  0.5% < |e| ≤ 1.0%', data:Array(n).fill(0), borderColor:'rgba(234,179,8,0.8)',
+              backgroundColor:'rgba(234,179,8,0.15)', borderWidth:0, pointRadius:0,
+              fill:true, spanGaps:true },
+            { label:'🔴 Crítico  |e| > 1.0%', data:Array(n).fill(0), borderColor:'rgba(220,38,38,0.8)',
+              backgroundColor:'rgba(220,38,38,0.12)', borderWidth:0, pointRadius:0,
+              fill:true, spanGaps:true },
+        ];
+    }
+
+    // ✅ TTR T1 - Con 2 decimales en eje Y
+    mkChart('chartTTR_T1', L1, [
+        ...ttrZoneLegend(n1),
+        ds('Valor Máx. Tomas 1–5 (%)', e1.ttr.tomaMax, '#2E86C1', { pr:5, borderWidth:2.2 }),
+        ds('Toma 1', e1.ttr.toma1, '#60a5fa', { pr:3, borderWidth:1.3 }),
+        ds('Toma 2', e1.ttr.toma2, '#fb923c', { pr:3, borderWidth:1.3 }),
+        ds('Toma 4', e1.ttr.toma4, '#4ade80', { pr:3, borderWidth:1.3 }),
+        ds('Toma 5', e1.ttr.toma5, '#c084fc', { pr:3, borderWidth:1.3 }),
+        dsLimit('Límite ±0.5%', n1,  0.5, '#15803d'),
+        dsLimit('', n1, -0.5, '#15803d'),
+        dsLimit('Límite ±1.0%', n1,  1.0, '#f59e0b'),
+        dsLimit('', n1, -1.0, '#f59e0b'),
+    ], 'Error TTR (%) — IEEE C57.12.90',
+    { yMin:-1, yMax:1 }, ttrAbsPlugin);
+
+    // ✅ TTR T2 - Con 2 decimales en eje Y
+    mkChart('chartTTR_T2', L2, [
+        ...ttrZoneLegend(n2),
+        ds('Valor Máx. Tomas 1–5 (%)', e2.ttr.tomaMax, '#E67E22', { pr:5, borderWidth:2.2 }),
+        ds('Toma 1', e2.ttr.toma1, '#60a5fa', { pr:3, borderWidth:1.3 }),
+        ds('Toma 2', e2.ttr.toma2, '#fb923c', { pr:3, borderWidth:1.3 }),
+        ds('Toma 4', e2.ttr.toma4, '#4ade80', { pr:3, borderWidth:1.3 }),
+        ds('Toma 5', e2.ttr.toma5, '#c084fc', { pr:3, borderWidth:1.3 }),
+        dsLimit('Límite ±0.5%', n2,  0.5, '#15803d'),
+        dsLimit('', n2, -0.5, '#15803d'),
+        dsLimit('Límite ±1.0%', n2,  1.0, '#f59e0b'),
+        dsLimit('', n2, -1.0, '#f59e0b'),
+    ], 'Error TTR (%) — IEEE C57.12.90',
+    { yMin:-1, yMax:1 }, ttrAbsPlugin);
+
+    // ── 2. Factor de Potencia (CLH/CL) — CON 2 DECIMALES
+    mkChart('chartFP_T1', L1,
+        [ds('CLH — %FP', e1.fp.clh, '#2E86C1'), ds('CL — %FP', e1.fp.cl, '#E67E22'),
+         dsLimit('Excelente (0.5%)', n1, 0.5, '#16a34a'), dsLimit('Alerta (1.0%)', n1, 1.0, '#f59e0b')],
+        'Factor de Potencia (%) — IEEE C57.152', {}, LIM.fp);
+    mkChart('chartFP_T2', L2,
+        [ds('CLH — %FP', e2.fp.clh, '#2E86C1'), ds('CL — %FP', e2.fp.cl, '#E67E22'),
+         dsLimit('Excelente (0.5%)', n2, 0.5, '#16a34a'), dsLimit('Alerta (1.0%)', n2, 1.0, '#f59e0b')],
+        'Factor de Potencia (%) — IEEE C57.152', {}, LIM.fp);
+
+    // ── 3. Resistencia de Aislamiento
+    const raPlugin = makeZonesPlugin({ dir:'hi', ex: LIM.ra.ex, al: LIM.ra.al, cr: LIM.ra.cr });
+
+    ['T1','T2'].forEach(tx => {
+        const ed = tx === 'T1' ? e1 : e2;
+        const n  = tx === 'T1' ? n1  : n2;
+        const L  = tx === 'T1' ? L1  : L2;
+        const c1 = '#2E86C1', c2 = '#E67E22', c3 = '#27AE60';
+        new Chart(
+            document.getElementById('chartRA_' + tx)?.getContext('2d'),
+            {
+                type: 'line',
+                plugins: [raPlugin],
+                data: { labels: L, datasets: [
+                    ds('AT-Masa (GΩ)', ed.ra.at_masa, c1),
+                    ds('BT-Masa (GΩ)', ed.ra.bt_masa, c2),
+                    ds('AT-BT (GΩ)',   ed.ra.at_bt,   c3),
+                    dsLimit('Excelente (≥1 GΩ)', n, 1.0,  '#16a34a'),
+                    dsLimit('Alerta (≥0.1 GΩ)', n, 0.1,  '#f59e0b'),
+                ]},
+                options: {
+                    responsive:true, maintainAspectRatio:false, spanGaps:true,
+                    plugins: {
+                        legend: { position:'top', labels:{ font:{size:9}, boxWidth:12, usePointStyle:true } },
+                        title: {
+                            display: true,
+                            text: 'Resistencia de Aislamiento (GΩ) — ' + tx + ' (IEEE C57.152)',
+                            font: { size: 10, weight: 'bold' }
+                        },
+                        tooltip: { callbacks: {
+                            title: ctx => 'Fecha: ' + (L[ctx[0].dataIndex] || ''),
+                            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}`
+                        }}
+                    },
+                    scales: {
+                        x: { ticks:{ font:{size:8}, maxRotation:45, autoSkip:true, maxTicksLimit:10 } },
+                        y: { min: 0, max: 250, title: { display:true, text:'GΩ', font:{size:9} }, ticks: { font:{size:9} } }
+                    }
+                }
+            }
+        );
+    });
+
+    // ── 4. Capacitancia
+    mkChart('chartCap_T1', L1,
+        [ds('CLH (pF)', e1.cap.clh, '#2E86C1'), ds('CL (pF)', e1.cap.cl, '#E67E22')],
+        'Capacitancia (pF)', { autoRange:true });
+    mkChart('chartCap_T2', L2,
+        [ds('CLH (pF)', e2.cap.clh, '#2E86C1'), ds('CL (pF)', e2.cap.cl, '#E67E22')],
+        'Capacitancia (pF)', { autoRange:true });
+
+    // ── 5. Corriente de Excitación
+    mkChart('chartExcit_T1', L1,
+        [ds('Fase U (mA)', e1.excit.u_ma, '#2E86C1'),
+         ds('Fase V (mA)', e1.excit.v_ma, '#E67E22'),
+         ds('Fase W (mA)', e1.excit.w_ma, '#27AE60')],
+        'Corriente (mA)', { autoRange:true });
+    mkChart('chartExcit_T2', L2,
+        [ds('Fase U (mA)', e2.excit.u_ma, '#2E86C1'),
+         ds('Fase V (mA)', e2.excit.v_ma, '#E67E22'),
+         ds('Fase W (mA)', e2.excit.w_ma, '#27AE60')],
+        'Corriente (mA)', { autoRange:true });
+
+    // ── 6. TC Bushings
+    ['T1','T2'].forEach(tx => {
+        const ed = tx === 'T1' ? e1 : e2;
+        const L  = tx === 'T1' ? L1  : L2;
+        const n  = L.length;
+        new Chart(document.getElementById('chartTC_' + tx)?.getContext('2d'), {
+            type: 'line',
+            data: { labels: L, datasets: [
+                ds('TC-11 R (%)', ed.tc.tc11r, '#2E86C1'),
+                ds('TC-14 R (%)', ed.tc.tc14r, '#1a5896'),
+                ds('TC-12 S (%)', ed.tc.tc12s, '#E67E22'),
+                ds('TC-15 S (%)', ed.tc.tc15s, '#a04010'),
+                ds('TC-13 T (%)', ed.tc.tc13t, '#27AE60'),
+                ds('TC-16 T (%)', ed.tc.tc16t, '#15694a'),
+                ds('TC-20 N (%)', ed.tc.tc20n, '#8E44AD'),
+                dsLimit('Clase 0.5 (±0.5%)', n, 0.5, '#16a34a'),
+                dsLimit('', n, -0.5, '#16a34a'),
+                dsLimit('Clase 1.0 (±1.0%)', n, 1.0, '#f59e0b'),
+                dsLimit('', n, -1.0, '#f59e0b'),
+                dsLimit('Clase 3.0 (±3.0%)', n, 3.0, '#ef4444'),
+                dsLimit('', n, -3.0, '#ef4444'),
+            ]},
+            options: {
+                responsive:true, maintainAspectRatio:false, spanGaps:true,
+                plugins: {
+                    legend: { position:'top', labels:{ font:{size:9}, boxWidth:12, usePointStyle:true } },
+                    title: {
+                        display: true,
+                        text: 'Error TTR TC\'s — Bushings (' + tx + ') — IEC 60044-1',
+                        font: { size: 11, weight: 'bold' }
+                    },
+                    tooltip: { callbacks: {
+                        title: ctx => 'Fecha: ' + (L[ctx[0].dataIndex] || ''),
+                        label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}`
+                    }}
+                },
+                scales: {
+                    x: { ticks:{ font:{size:8}, maxRotation:45, autoSkip:true, maxTicksLimit:10 } },
+                    y: { min: -95, max: 35, title: { display:true, text:'Error (%)', font:{size:9} }, ticks: { font:{size:9} } }
+                }
+            }
+        });
+    });
+
+    // ── 7. SFRA — CON LÍNEAS RECTAS (EFECTO CERRUCHO)
+    mkSFRAChart('chartSFRA_T1', '#2E86C1', 'T1');
+    mkSFRAChart('chartSFRA_T2', '#E67E22', 'T2');
+
+    // ══════════════════════════════════════════════════════════════
+    // TAB 3 — ANÁLISIS DE ACEITE
+    // ══════════════════════════════════════════════════════════════
+    const oL1 = t1.oil.labels, oL2 = t2.oil.labels;
+    const on1 = oL1.length, on2 = oL2.length;
+
+    // Color ASTM — CON 2 DECIMALES
+    mkChart('chartColor_T1', oL1, [ds('Color ASTM', t1.oil.color,'#F39C12'), dsLimit('Excelente (≤1)',on1,1,'#16a34a'), dsLimit('Alerta (3)',on1,3,'#f59e0b')], 'Color ASTM', {}, LIM.color);
+    mkChart('chartColor_T2', oL2, [ds('Color ASTM', t2.oil.color,'#F39C12'), dsLimit('Excelente (≤1)',on2,1,'#16a34a'), dsLimit('Alerta (3)',on2,3,'#f59e0b')], 'Color ASTM', {}, LIM.color);
+
+    // Índice de Acidez — CON 2 DECIMALES
+    mkChart('chartIA_T1',    oL1, [ds('Índice Acidez (mgKOH/g)', t1.oil.ia,'#C0392B'), dsLimit('Excelente (≤0.03)',on1,0.03,'#16a34a'), dsLimit('Alerta (0.08)',on1,0.08,'#f59e0b')], 'mgKOH/g', {}, LIM.ia);
+    mkChart('chartIA_T2',    oL2, [ds('Índice Acidez (mgKOH/g)', t2.oil.ia,'#C0392B'), dsLimit('Excelente (≤0.03)',on2,0.03,'#16a34a'), dsLimit('Alerta (0.08)',on2,0.08,'#f59e0b')], 'mgKOH/g', {}, LIM.ia);
+
+    // Tensión de Ruptura Dieléctrica — CON 2 DECIMALES
+    mkChart('chartTRD_T1',   oL1, [ds('Rupt. Dieléctrica (kV)', t1.oil.trd,'#8E44AD'), dsLimit('Excelente (≥60)',on1,60,'#16a34a'), dsLimit('Alerta (40)',on1,40,'#f59e0b')], 'kV', {}, LIM.trd);
+    mkChart('chartTRD_T2',   oL2, [ds('Rupt. Dieléctrica (kV)', t2.oil.trd,'#8E44AD'), dsLimit('Excelente (≥60)',on2,60,'#16a34a'), dsLimit('Alerta (40)',on2,40,'#f59e0b')], 'kV', {}, LIM.trd);
+
+    // Factor de Potencia del aceite — CON 2 DECIMALES
+    mkChart('chartFPO_T1',   oL1, [ds('Factor de Potencia (%)', t1.oil.fp,'#E67E22'), dsLimit('Excelente (≤0.05)',on1,0.05,'#16a34a'), dsLimit('Alerta (0.20)',on1,0.20,'#f59e0b')], '% @25°C', {}, LIM.fpo);
+    mkChart('chartFPO_T2',   oL2, [ds('Factor de Potencia (%)', t2.oil.fp,'#E67E22'), dsLimit('Excelente (≤0.05)',on2,0.05,'#16a34a'), dsLimit('Alerta (0.20)',on2,0.20,'#f59e0b')], '% @25°C', {}, LIM.fpo);
+
+    // Agua — SIN DECIMALES
+    mkChart('chartAgua_T1',  oL1, [ds('Agua (ppm)', t1.oil.agua,'#2E86C1'),  dsLimit('Excelente (≤10)',on1,10,'#16a34a'), dsLimit('Alerta (20)',on1,20,'#f59e0b')], 'ppm', {}, LIM.agua);
+    mkChart('chartAgua_T2',  oL2, [ds('Agua (ppm)', t2.oil.agua,'#2E86C1'),  dsLimit('Excelente (≤10)',on2,10,'#16a34a'), dsLimit('Alerta (20)',on2,20,'#f59e0b')], 'ppm', {}, LIM.agua);
+
+    // Tensión Interfacial — SIN DECIMALES
+    mkChart('chartTI_T1',    oL1, [ds('T. Interfacial (dynes/cm)', t1.oil.ti,'#27AE60'), dsLimit('Excelente (≥40)',on1,40,'#16a34a'), dsLimit('Alerta (30)',on1,30,'#f59e0b')], 'dynes/cm', {}, LIM.ti);
+    mkChart('chartTI_T2',    oL2, [ds('T. Interfacial (dynes/cm)', t2.oil.ti,'#27AE60'), dsLimit('Excelente (≥40)',on2,40,'#16a34a'), dsLimit('Alerta (30)',on2,30,'#f59e0b')], 'dynes/cm', {}, LIM.ti);
+
+    // ══════════════════════════════════════════════════════════════
+    // TAB 4 — DGA / GASES (3 gráficas por fila, SIN DECIMALES EN EJE Y)
+    // ══════════════════════════════════════════════════════════════
+    const gL1 = t1.dga.labels, gL2 = t2.dga.labels;
+    const gn1 = gL1.length, gn2 = gL2.length;
+
+    // T1 - Gases principales
+    mkChart('chartH2_T1',    gL1, [ds('H₂ (ppm)',    t1.dga.h2,    '#2E86C1',{fill:true}), dsLimit('Excelente (100)',gn1,100,'#16a34a'), dsLimit('Alerta (700)',gn1,700,'#f59e0b')],  'ppm', {}, LIM.h2);
+    mkChart('chartCH4_T1',   gL1, [ds('CH₄ (ppm)',   t1.dga.ch4,   '#27AE60'), dsLimit('Excelente (120)',gn1,120,'#16a34a'), dsLimit('Alerta (400)',gn1,400,'#f59e0b')],              'ppm', {}, LIM.ch4);
+    mkChart('chartC2H2_T1',  gL1, [ds('C₂H₂ (ppm)', t1.dga.c2h2,  '#E67E22'), dsLimit('Excelente (1)',  gn1,1,  '#16a34a'), dsLimit('Alerta (9)',  gn1,9,  '#f59e0b')],             'ppm', {}, LIM.c2h2);
+    mkChart('chartC2H6_T1',  gL1, [ds('C₂H₆ (ppm)', t1.dga.c2h6,  '#16A085'), dsLimit('Excelente (65)', gn1,65, '#16a34a'), dsLimit('Alerta (100)',gn1,100,'#f59e0b')],             'ppm', {}, LIM.c2h6);
+    mkChart('chartC2H4_T1',  gL1, [ds('C₂H₄ (ppm)', t1.dga.c2h4,  '#8E44AD'), dsLimit('Excelente (50)', gn1,50, '#16a34a'), dsLimit('Alerta (100)',gn1,100,'#f59e0b')],             'ppm', {}, LIM.c2h4);
+    mkChart('chartCO_T1',    gL1, [ds('CO (ppm)',     t1.dga.co,    '#C0392B'), dsLimit('Excelente (350)',gn1,350,'#16a34a'), dsLimit('Alerta (570)',gn1,570,'#f59e0b')],             'ppm', {}, LIM.co);
+    mkChart('chartCO2_T1',   gL1, [ds('CO₂ (ppm)',   t1.dga.co2,   '#2980B9'), dsLimit('Excelente (2500)',gn1,2500,'#16a34a'), dsLimit('Alerta (4000)',gn1,4000,'#f59e0b')],         'ppm', {}, LIM.co2);
+    mkChart('chartTDCG_T1',  gL1, [ds('TDCG (ppm)',  t1.dga.tdcg,  '#34495E'), dsLimit('Excelente (720)',gn1,720,'#16a34a'), dsLimit('Alerta (1920)',gn1,1920,'#f59e0b')],           'ppm', {}, LIM.tdcg);
+
+    // T2 - Gases principales
+    mkChart('chartH2_T2',    gL2, [ds('H₂ (ppm)',    t2.dga.h2,    '#E67E22',{fill:true}), dsLimit('Excelente (100)',gn2,100,'#16a34a'), dsLimit('Alerta (700)',gn2,700,'#f59e0b')],  'ppm', {}, LIM.h2);
+    mkChart('chartCH4_T2',   gL2, [ds('CH₄ (ppm)',   t2.dga.ch4,   '#27AE60'), dsLimit('Excelente (120)',gn2,120,'#16a34a'), dsLimit('Alerta (400)',gn2,400,'#f59e0b')],              'ppm', {}, LIM.ch4);
+    mkChart('chartC2H2_T2',  gL2, [ds('C₂H₂ (ppm)', t2.dga.c2h2,  '#E67E22'), dsLimit('Excelente (1)',  gn2,1,  '#16a34a'), dsLimit('Alerta (9)',  gn2,9,  '#f59e0b')],             'ppm', {}, LIM.c2h2);
+    mkChart('chartC2H6_T2',  gL2, [ds('C₂H₆ (ppm)', t2.dga.c2h6,  '#16A085'), dsLimit('Excelente (65)', gn2,65, '#16a34a'), dsLimit('Alerta (100)',gn2,100,'#f59e0b')],             'ppm', {}, LIM.c2h6);
+    mkChart('chartC2H4_T2',  gL2, [ds('C₂H₄ (ppm)', t2.dga.c2h4,  '#8E44AD'), dsLimit('Excelente (50)', gn2,50, '#16a34a'), dsLimit('Alerta (100)',gn2,100,'#f59e0b')],             'ppm', {}, LIM.c2h4);
+    mkChart('chartCO_T2',    gL2, [ds('CO (ppm)',     t2.dga.co,    '#C0392B'), dsLimit('Excelente (350)',gn2,350,'#16a34a'), dsLimit('Alerta (570)',gn2,570,'#f59e0b')],             'ppm', {}, LIM.co);
+    mkChart('chartCO2_T2',   gL2, [ds('CO₂ (ppm)',   t2.dga.co2,   '#2980B9'), dsLimit('Excelente (2500)',gn2,2500,'#16a34a'), dsLimit('Alerta (4000)',gn2,4000,'#f59e0b')],         'ppm', {}, LIM.co2);
+    mkChart('chartTDCG_T2',  gL2, [ds('TDCG (ppm)',  t2.dga.tdcg,  '#34495E'), dsLimit('Excelente (720)',gn2,720,'#16a34a'), dsLimit('Alerta (1920)',gn2,1920,'#f59e0b')],           'ppm', {}, LIM.tdcg);
+
+    // ── Gráficas secundarias (N2, O2, CO2/CO, TDHHG) ──
+    // T1
+    mkChart('chartN2_T1',    gL1, [ds('N₂ (ppm)',    t1.dga.n2,    '#7F8C8D')], 'ppm', { autoRange:false });
+    mkChart('chartO2_T1',    gL1, [ds('O₂ (ppm)',    t1.dga.o2,    '#1ABC9C')], 'ppm', { autoRange:false });
+    mkChart('chartCO2CO_T1', gL1, [ds('CO₂/CO',      t1.dga.co2co, '#D35400'), dsLimit('Referencia (3)',gn1,3,'#16a34a')], 'Relación', { autoRange:true });
+    mkChart('chartTDHHG_T1', gL1, [ds('TDHHG (ppm)', t1.dga.tdhhg, '#884EA0')], 'ppm', { autoRange:false });
+
+    // T2
+    mkChart('chartN2_T2',    gL2, [ds('N₂ (ppm)',    t2.dga.n2,    '#7F8C8D')], 'ppm');
+    mkChart('chartO2_T2',    gL2, [ds('O₂ (ppm)',    t2.dga.o2,    '#1ABC9C')], 'ppm');
+    mkChart('chartCO2CO_T2', gL2, [ds('CO₂/CO',      t2.dga.co2co, '#D35400'), dsLimit('Referencia (3)',gn2,3,'#16a34a')], 'Relación', { autoRange:true });
+    mkChart('chartTDHHG_T2', gL2, [ds('TDHHG (ppm)', t2.dga.tdhhg, '#884EA0')], 'ppm');
+
+    // ── Pentágono de Duval ──
+    const dga1Last = { h2:lastVal(t1.dga.h2), ch4:lastVal(t1.dga.ch4),
+                       c2h6:lastVal(t1.dga.c2h6), c2h4:lastVal(t1.dga.c2h4), c2h2:lastVal(t1.dga.c2h2) };
+    const dga2Last = { h2:lastVal(t2.dga.h2), ch4:lastVal(t2.dga.ch4),
+                       c2h6:lastVal(t2.dga.c2h6), c2h4:lastVal(t2.dga.c2h4), c2h2:lastVal(t2.dga.c2h2) };
+    const diag1 = renderDuvalPentagon('duvalCanvas_T1', dga1Last, 'T1', '#2E86C1');
+    const diag2 = renderDuvalPentagon('duvalCanvas_T2', dga2Last, 'T2', '#E67E22');
+
+    // ══════════════════════════════════════════════════════════════
+    // TAB 5 — VIDA REMANENTE (metodología DNV calculada dinámicamente
+    // a partir de los mismos datos de Furanos de DATA.t1/t2.life — ver
+    // js/dnv-life.js, portado de vida_remanente_transformadores.py)
+    // ══════════════════════════════════════════════════════════════
+
+    // ── Evolución de Furanos — un gráfico por transformador (sin mezclar T1/T2) ──
+    new Chart(document.getElementById('chartFuranos_T1'), {
+        type: 'line',
+        data: { labels: t1.life.furansLabels, datasets: [ ds('T1 — 2-FAL (ppb)', t1.life.furans, '#2E86C1', {fill:true}) ] },
+        options: { responsive:true, maintainAspectRatio:false, spanGaps:true,
+            plugins: { legend:{position:'top',labels:{font:{size:9}}},
+                tooltip:{callbacks:{title:ctx=>'Fecha: '+t1.life.furansLabels[ctx[0].dataIndex]}} },
+            scales: { x:{ticks:{font:{size:9},maxRotation:45}},
+                y:{beginAtZero:true,suggestedMax:40,title:{display:true,text:'ppb',font:{size:9}}} } }
+    });
+    new Chart(document.getElementById('chartFuranos_T2'), {
+        type: 'line',
+        data: { labels: t2.life.furansLabels, datasets: [ ds('T2 — 2-FAL (ppb)', t2.life.furans, '#E67E22', {fill:true}) ] },
+        options: { responsive:true, maintainAspectRatio:false, spanGaps:true,
+            plugins: { legend:{position:'top',labels:{font:{size:9}}},
+                tooltip:{callbacks:{title:ctx=>'Fecha: '+t2.life.furansLabels[ctx[0].dataIndex]}} },
+            scales: { x:{ticks:{font:{size:9},maxRotation:45}},
+                y:{beginAtZero:true,suggestedMax:40,title:{display:true,text:'ppb',font:{size:9}}} } }
+    });
+
+    // ── Cálculo DNV dinámico (DP, % vida, vida consumida/remanente, estado, diagnóstico) ──
+    const dnv1 = computeDNVLife(t1);
+    const dnv2 = computeDNVLife(t2);
+
+    // ── Rellenar panel de diagnóstico automático ──
+    function fillDNVPanel(tx, dnv) {
+        if (!dnv) return;
+        const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+        set('dnvDP_'+tx, dnv.dp !== null ? dnv.dp.toLocaleString('es-PE') : 'S/D');
+        set('dnvPctVida_'+tx, dnv.pctVidaRestante !== null ? dnv.pctVidaRestante+'%' : 'S/D');
+        set('dnvPctPerdida_'+tx, dnv.pctPerdida !== null ? dnv.pctPerdida+'%' : 'S/D');
+        set('dnvConsumida_'+tx, dnv.vidaConsumidaAnios !== null ? '≈ '+dnv.vidaConsumidaAnios+' años' : 'S/D');
+        set('dnvRemanente_'+tx, dnv.vidaRemanenteAnios !== null ? '≈ '+dnv.vidaRemanenteAnios+' años' : 'S/D');
+
+        const estadoEl = document.getElementById('dnvEstado_'+tx);
+        if (estadoEl) {
+            const dotColor = { excellent:'#16a34a', warning:'#f59e0b', critical:'#ef4444', info:'#64748b' }[dnv.estado.cls] || '#64748b';
+            estadoEl.innerHTML = `<i class="fas fa-circle" style="color:${dotColor}; font-size:10px; margin-right:6px;"></i>${dnv.estado.texto}`;
+        }
+
+        const diagEl = document.getElementById('dnvDiag_'+tx);
+        if (diagEl) {
+            diagEl.innerHTML = `<i class="fas fa-book"></i> <strong>Interpretación técnica (DNV):</strong> ${dnv.diagnostico}
+                <br><span style="font-size:11px;color:#64748b;">Basado en ${dnv.nMuestras} muestras de furanos (última: ${dnv.ultimaFecha}), edad actual ≈ ${dnv.edadActual} años, furanos extrapolados ≈ ${dnv.furanosExtrapolados} ppb.</span>`;
+        }
+
+        // Tabla de metodologías
+        const tblDP = document.getElementById('tblDP_'+tx);
+        const tblVida = document.getElementById('tblVida_'+tx);
+        if (tblDP) tblDP.textContent = dnv.dp !== null ? dnv.dp.toLocaleString('es-PE') : 'S/D';
+        if (tblVida) tblVida.textContent = dnv.vidaRemanenteAnios !== null ? '≈ '+dnv.vidaRemanenteAnios+' años' : 'S/D';
+
+        // Badge resumen superior
+        const summaryEl = document.getElementById('summaryDNV_'+tx);
+        if (summaryEl) {
+            const dot = tx === 'T1' ? '#2E86C1' : '#E67E22';
+            summaryEl.innerHTML = `<i class="fas fa-circle" style="color:${dot}; font-size:10px;"></i> ${tx}: ≈ ${dnv.vidaRemanenteAnios} años remanentes (DNV)`;
+        }
+    }
+    fillDNVPanel('T1', dnv1);
+    fillDNVPanel('T2', dnv2);
+
+    // ── Estimativa de Vida Remanente (réplica de graficar_vida_remanente() del script
+    //    vida_remanente_transformadores.py — curva DP vs. % vida restante), filtrada
+    //    por transformador: un gráfico dentro de cada sección T1 / T2 ──
+    function renderEstimativaVida(canvasId, dnv, color, pointStyle, label) {
+        const el = document.getElementById(canvasId); if (!el) return;
+
+        // Curva de referencia suave (equivalente a las Figuras 8/9 del informe DNV)
+        const curva = [];
+        for (let p = 0; p <= 100; p += 1) curva.push({ x: p, y: dnvPorcentajeVidaADP(p) });
+
+        // Puntos guía cada 10% (marcadores magenta, como en el informe original)
+        const guia = [];
+        for (let p = 100; p >= 0; p -= 10) guia.push({ x: p, y: dnvPorcentajeVidaADP(p) });
+
+        const punto = (dnv && dnv.dp !== null) ? [{ x: dnv.pctVidaRestante, y: dnv.dp }] : [];
+
+        new Chart(el.getContext('2d'), {
+            type: 'line',
+            data: {
+                datasets: [
+                    { label:'Curva de referencia DP vs. % vida restante', data:curva, type:'line', showLine:true,
+                      borderColor:'#0b2b5c', borderWidth:2, pointRadius:0, fill:false, tension:0.15 },
+                    { label:'Puntos guía (c/10%)', data:guia, type:'scatter', showLine:false,
+                      backgroundColor:'#d946ef', borderColor:'#831843', pointStyle:'rectRot', pointRadius:6, pointBorderWidth:1 },
+                    { label:label+' (DP='+(dnv?dnv.dp:'—')+')', data:punto, type:'scatter', showLine:false,
+                      backgroundColor:color, borderColor:'#0b2b5c', pointStyle:pointStyle, pointRadius:11, pointBorderWidth:2 }
+                ]
+            },
+            options: {
+                responsive:true, maintainAspectRatio:false,
+                plugins: {
+                    legend:{ position:'top', labels:{ font:{size:9}, usePointStyle:true, boxWidth:9 } },
+                    tooltip:{ callbacks:{ label: ctx => `${ctx.dataset.label}: DP=${Math.round(ctx.parsed.y)}, %Vida=${ctx.parsed.x}%` } }
+                },
+                scales: {
+                    x: { type:'linear', min:0, max:100, reverse:true,
+                         title:{ display:true, text:'% Vida Restante', font:{size:10,weight:'bold'} },
+                         ticks:{ font:{size:8}, callback:v=>v+'%' } },
+                    y: { min:180, max:1020,
+                         title:{ display:true, text:'Valores DP', font:{size:10,weight:'bold'} },
+                         ticks:{ font:{size:8} } }
+                }
+            }
+        });
+    }
+    renderEstimativaVida('chartEstimativaVida_T1', dnv1, '#2E86C1', 'circle',   'T1 — SN 8128922');
+    renderEstimativaVida('chartEstimativaVida_T2', dnv2, '#E67E22', 'triangle', 'T2 — SN 8128923');
+}
+
+document.addEventListener('DOMContentLoaded', renderAllCharts);
+</script>
+
+<!-- js/navigation.js -->
+<script>
+// ================================================================
+// NAVEGACIÓN POR TABS
+// ================================================================
+const tabs = document.querySelectorAll('.nav-tab');
+const panes = document.querySelectorAll('.tab-pane');
+
+tabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+        tabs.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        const target = this.dataset.tab;
+        panes.forEach(p => p.classList.remove('active'));
+        document.getElementById(target).classList.add('active');
+    });
+});
+</script>
+
+<!-- js/selector.js -->
+<script>
+// ================================================================
+// TRANSFORMER SELECTOR LOGIC
+// ================================================================
+let selectedTransformer = null;
+const DETAIL_TABS = ['tab2', 'tab3', 'tab4', 'tab5'];
+
+function selectTransformer(num) {
+    selectedTransformer = num;
+
+    // Show detail tabs
+    document.querySelectorAll('.detail-tab').forEach(t => t.style.display = 'flex');
+
+    // Update tab1 card highlight
+    ['t1', 't2'].forEach(t => {
+        const card = document.getElementById('tab1-' + t + '-card');
+        if (card) card.classList.remove('selected-card');
+    });
+    const selCard = document.getElementById('tab1-t' + num + '-card');
+    if (selCard) selCard.classList.add('selected-card');
+
+    // Update header badge
+    const badge = document.getElementById('selectedTransformerBadge');
+    badge.style.display = 'block';
+    badge.innerHTML = num === 1
+        ? '🔵 Transformador 1 &mdash; SN 8128922'
+        : '🟠 Transformador 2 &mdash; SN 8128923';
+
+    // Show/hide transformer sections and filter banners in each detail tab
+    DETAIL_TABS.forEach(tabId => {
+        // Hide no-selection notice
+        const nosel = document.getElementById('nosel_' + tabId);
+        if (nosel) nosel.style.display = 'none';
+
+        // Show/hide T1 and T2 sections
+        const t1 = document.getElementById('sec_t1_' + tabId);
+        const t2 = document.getElementById('sec_t2_' + tabId);
+        if (t1) t1.style.display = num === 1 ? 'block' : 'none';
+        if (t2) t2.style.display = num === 2 ? 'block' : 'none';
+
+        // Filter banners
+        const fb1 = document.getElementById('fb_' + tabId + '_t1');
+        const fb2 = document.getElementById('fb_' + tabId + '_t2');
+        if (fb1) fb1.style.display = num === 1 ? 'flex' : 'none';
+        if (fb2) fb2.style.display = num === 2 ? 'flex' : 'none';
+    });
+
+    // Navigate to Pruebas Eléctricas
+    setTimeout(() => {
+        const tab2btn = document.querySelector('.nav-tab[data-tab="tab2"]');
+        if (tab2btn) tab2btn.click();
+    }, 300);
+
+    // Draw Duval pentagons after transition
+    setTimeout(() => {
+        if (num === 1) {
+            const t1 = DATA.t1;
+            drawDuvalPentagon('duvalPentagonT1', 
+                [t1.dga.ch4.slice(-1)[0], t1.dga.c2h4.slice(-1)[0], t1.dga.c2h6.slice(-1)[0], t1.dga.h2.slice(-1)[0], t1.dga.c2h2.slice(-1)[0]], 
+                '#2E86C1', 'T1');
+        }
+        if (num === 2) {
+            const t2 = DATA.t2;
+            drawDuvalPentagon('duvalPentagonT2', 
+                [t2.dga.ch4.slice(-1)[0], t2.dga.c2h4.slice(-1)[0], t2.dga.c2h6.slice(-1)[0], t2.dga.h2.slice(-1)[0], t2.dga.c2h2.slice(-1)[0]], 
+                '#E67E22', 'T2');
+        }
+    }, 600);
+}
+
+function clearSelection() {
+    selectedTransformer = null;
+
+    // Remove highlights
+    ['t1', 't2'].forEach(t => {
+        const card = document.getElementById('tab1-' + t + '-card');
+        if (card) card.classList.remove('selected-card');
+    });
+
+    // Hide header badge
+    document.getElementById('selectedTransformerBadge').style.display = 'none';
+
+    // Reset detail tabs
+    DETAIL_TABS.forEach(tabId => {
+        const nosel = document.getElementById('nosel_' + tabId);
+        if (nosel) nosel.style.display = 'block';
+
+        const t1 = document.getElementById('sec_t1_' + tabId);
+        const t2 = document.getElementById('sec_t2_' + tabId);
+        if (t1) t1.style.display = 'none';
+        if (t2) t2.style.display = 'none';
+
+        const fb1 = document.getElementById('fb_' + tabId + '_t1');
+        const fb2 = document.getElementById('fb_' + tabId + '_t2');
+        if (fb1) fb1.style.display = 'none';
+        if (fb2) fb2.style.display = 'none';
+    });
+
+    // Hide detail tabs
+    document.querySelectorAll('.detail-tab').forEach(t => t.style.display = 'none');
+
+    // Go to Datos Generales
+    const tab1btn = document.querySelector('.nav-tab[data-tab="tab1"]');
+    if (tab1btn) tab1btn.click();
+}
+</script>
+
+</body>
+</html>
